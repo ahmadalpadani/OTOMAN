@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: otoman-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: otoman-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/var/www
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=otoman
+      - DB_USERNAME=otoman
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+      - ml-service
+
+  ml-service:
+    build: ./ml-service
+    container_name: otoman-ml
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./ml-service:/app
+
+  db:
+    image: mysql:8.0
+    container_name: otoman-db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: otoman
+      MYSQL_USER: otoman
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
