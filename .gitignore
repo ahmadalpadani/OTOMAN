@@ -1,0 +1,16 @@
+# Podman local configuration (NOT for git)
+setup-podman.sh
+stop-podman.sh
+.podman/
+docker-compose.local.yaml
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
