@@ -5,29 +5,30 @@ services:
     build: ./frontend
     container_name: otoman-frontend
     ports:
-      - "3000:3000"
+      - "3000:80"
     volumes:
-      - ./frontend:/app
-    environment:
-      - REACT_APP_API_URL=http://localhost:8000
+      - ./frontend:/usr/share/nginx/html
     depends_on:
       - backend
+    restart: always
 
   backend:
-    build: ./backend
+    build: ./laravel
     container_name: otoman-backend
     ports:
-      - "8000:8000"
+    - "8000:8000"
     volumes:
-      - ./backend:/var/www
+    - ./laravel:/var/www
+    - /var/www/vendor
     environment:
-      - DB_HOST=db
-      - DB_DATABASE=otoman
-      - DB_USERNAME=otoman
-      - DB_PASSWORD=secret
+      DB_HOST: db
+      DB_DATABASE: otoman
+      DB_USERNAME: otoman
+      DB_PASSWORD: otomanpass
     depends_on:
       - db
       - ml-service
+    command: sleep infinity
 
   ml-service:
     build: ./ml-service
@@ -36,19 +37,34 @@ services:
       - "8001:8000"
     volumes:
       - ./ml-service:/app
+    restart: always
 
   db:
     image: mysql:8.0
     container_name: otoman-db
-    ports:
-      - "3306:3306"
+    restart: always
     environment:
       MYSQL_DATABASE: otoman
       MYSQL_USER: otoman
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: otomanpass
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: otoman-phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpass
+    depends_on:
+      - db
 
 volumes:
   mysql_data:
