@@ -3,31 +3,560 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OTOMAN</title>
+    <title>OTOMAN - Platform Otomotif Terpercaya</title>
+    <meta name="description" content="Platform pengecekan kendaraan bekas, penaksiran harga, dan marketplace kendaraan terverifikasi">
 
-    <!-- Bootstrap CSS (Local) -->
+    <!-- Bootstrap CSS -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/landing.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
         <div class="container">
-            <a class="navbar-brand" href="#">Aplikasi Web OTOMAN</a>
+            <a class="navbar-brand fw-bold" href="index.html">
+                OTOMAN
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#beranda">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#layanan">Layanan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#cara-kerja">Cara Kerja</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#keunggulan">Keunggulan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#marketplace">Marketplace</a>
+                    </li>
+                </ul>
+                <div class="d-flex gap-2" id="authButtons">
+                    <a href="login.html" class="btn btn-outline-light btn-sm px-4">Masuk</a>
+                    <a href="register.html" class="btn btn-light btn-sm px-4">Daftar</a>
+                </div>
+                <div class="d-none align-items-center" id="userInfo">
+                    <span class="text-white me-3" id="userEmail"></span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">Keluar</button>
+                </div>
+            </div>
         </div>
     </nav>
 
-   
+    <!-- Hero Section -->
+    <section id="beranda" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center min-vh-100 mt-3">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <span class="badge bg-warning text-dark mb-3">🚗 Platform Otomotif Terpercaya</span>
+                        <h1 class="display-4 fw-bold text-white mb-4">Beli Kendaraan Bekas? <br><span class="text-warning">Cek Dulu di OTOMAN!</span></h1>
+                        <p class="lead text-white-50 mb-5">
+                            Platform pengecekan kendaraan bekas, penaksiran harga, dan marketplace kendaraan terverifikasi. Hindari penipuan, dapatkan informasi transparan, dan harga terbaik sesuai kondisi riil.
+                        </p>
+                        <div class="d-flex gap-3 flex-wrap">
+                            <a href="register.html" class="btn btn-warning btn-lg px-5 fw-bold">
+                                Mulai Sekarang
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right ms-2" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                                </svg>
+                            </a>
+                            <a href="#layanan" class="btn btn-outline-light btn-lg px-4">
+                                Pelajari Layanan
+                            </a>
+                        </div>
 
-    <!-- Bootstrap JS (Local) -->
+                        <!-- Stats -->
+                        <div class="row g-4 mt-5">
+                            <div class="col-6 col-md-3">
+                                <div class="stat-item">
+                                    <h3 class="fw-bold text-white mb-0">5000+</h3>
+                                    <p class="text-white-50 mb-0">Kendaraan Dicek</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stat-item">
+                                    <h3 class="fw-bold text-white mb-0">200+</h3>
+                                    <p class="text-white-50 mb-0">Inspector Profesional</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stat-item">
+                                    <h3 class="fw-bold text-white mb-0">98%</h3>
+                                    <p class="text-white-50 mb-0">Kepuasan Pelanggan</p>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="stat-item">
+                                    <h3 class="fw-bold text-white mb-0">24/7</h3>
+                                    <p class="text-white-50 mb-0">Support</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 d-none d-lg-block">
+                    <div class="hero-image text-center">
+                        <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800" alt="Inspeksi Kendaraan" class="img-fluid rounded-4 shadow-lg">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wave Divider -->
+    </section>
+
+    <!-- Layanan Section -->
+    <section id="layanan" class="py-5">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-3">LAYANAN KAMI</span>
+                <h2 class="display-5 fw-bold mb-3">Solusi Lengkap Kendaraan Bekas</h2>
+                <p class="lead text-muted">Dari inspeksi hingga transaksi, semua dalam satu platform terpercaya</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Service 1: Pengecekan Kendaraan -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="service-card h-100">
+                        <div class="card-body p-4">
+                            <div class="service-icon bg-primary bg-gradient text-white rounded-3 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-clipboard-check" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                                    <path d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                    <path d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                                </svg>
+                            </div>
+                            <h4 class="fw-bold mb-3">Pengecekan Kendaraan</h4>
+                            <p class="text-muted mb-4">
+                                Layanan inspeksi kendaraan bekas oleh teknisi profesional. Dapatkan laporan detail mencakup kondisi mesin, rangka, kelistrikan, interior-eksterior, hingga riwayat kecelakaan & banjir.
+                            </p>
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Inspektor profesional tersertifikasi</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Laporan detail & transparan</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Hasil dalam bentuk PDF & dashboard</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Appointment fleksibel</li>
+                            </ul>
+                            <a href="inspection.html" class="btn btn-outline-primary w-100">
+                                Pesan Inspeksi
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right ms-1" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 2: Penaksiran Harga -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="service-card h-100">
+                        <div class="card-body p-4">
+                            <div class="service-icon bg-success bg-gradient text-white rounded-3 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-calculator" viewBox="0 0 16 16">
+                                    <path d="M4 2a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H4zm0 1h8a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+                                    <path d="M4 6a1 1 0 0 1 1-1h6a1 1 0 0 1 0 2H5a1 1 0 0 1-1-1zm0 3a1 1 0 0 1 1-1h6a1 1 0 0 1 0 2H5a1 1 0 0 1-1-1zm0 3a1 1 0 0 1 1-1h6a1 1 0 0 1 0 2H5a1 1 0 0 1-1-1z"/>
+                                </svg>
+                            </div>
+                            <h4 class="fw-bold mb-3">Penaksiran Harga</h4>
+                            <p class="text-muted mb-4">
+                                Dapatkan estimasi harga kendaraan bekas yang akurat menggunakan teknologi Machine Learning. Ketahui harga pasar terendah, wajar, hingga tertinggi.
+                            </p>
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Estimasi berbasis Machine Learning</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Harga pasar terupdate</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Analisis komprehensif</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Gratis & instan</li>
+                            </ul>
+                            <a href="estimation.html" class="btn btn-outline-success w-100">
+                                Cek Harga Sekarang
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right ms-1" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service 3: Marketplace -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="service-card h-100">
+                        <div class="card-body p-4">
+                            <div class="service-icon bg-warning bg-gradient text-white rounded-3 mb-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-shop" viewBox="0 0 16 16">
+                                    <path d="M2.97 1.35A1 1 0 0 1 3.73 1h8.54a1 1 0 0 1 .76.35l2.609 3.044A1.5 1.5 0 0 1 16 5.37v.255a2.375 2.375 0 0 1-4.25 1.458A2.371 2.371 0 0 1 9.25 7V9H6.75V7a2.37 2.37 0 0 1-2.5 2.375A2.375 2.375 0 0 1 0 5.625V5.37a1.5 1.5 0 0 1 .361-.976l2.61-3.045zm1.78 4.275a1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 1.375 1.375 0 0 0 2.75 0 .5.5 0 0 1 1 0 2.375 2.375 0 0 1-4.25 1.458 2.371 2.371 0 0 1-2.5 2.375A2.375 2.375 0 0 1 1.75 7a.5.5 0 0 1 1 0z"/>
+                                    <path d="M12.78 6.22a.75.75 0 0 1 1.06 0l1.5 1.5a.75.75 0 0 1 0 1.06l-1.5 1.5a.75.75 0 0 1-1.06-1.06l.72-.72H9.75v2.25h3.75l-.72.72a.75.75 0 0 1 1.06 1.06l1.5-1.5a.75.75 0 0 1 0-1.06l-1.5-1.5a.75.75 0 0 1 0-1.06z"/>
+                                </svg>
+                            </div>
+                            <h4 class="fw-bold mb-3">Marketplace Terverifikasi</h4>
+                            <p class="text-muted mb-4">
+                                Temukan kendaraan bekas berkualitas yang telah lolos inspeksi OTOMAN. Setiap unit memiliki label "Verified by OTOMAN" dan laporan inspeksi lengkap.
+                            </p>
+                            <ul class="list-unstyled mb-4">
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Kendaraan terverifikasi lengkap</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Laporan inspeksi transparan</li>
+                                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>Filter pencarian canggih</li>
+                                <li><i class="bi bi-check-circle-fill text-success me-2"></i>Hubungi penjual via WhatsApp</li>
+                            </ul>
+                            <a href="#marketplace" class="btn btn-outline-warning w-100">
+                                Lihat Katalog
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right ms-1" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cara Kerja Section -->
+    <section id="cara-kerja" class="py-5 bg-light">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-3">CARA KERJA</span>
+                <h2 class="display-5 fw-bold mb-3">Proses Mudah & Transparan</h2>
+                <p class="lead text-muted">Hanya 4 langkah untuk mendapatkan kendaraan bekas berkualitas</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card text-center">
+                        <div class="step-number">1</div>
+                        <h5 class="fw-bold mb-3">Daftar & Login</h5>
+                        <p class="text-muted">Buat akun gratis di platform OTOMAN dalam hitungan detik</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card text-center">
+                        <div class="step-number">2</div>
+                        <h5 class="fw-bold mb-3">Pilih Layanan</h5>
+                        <p class="text-muted">Pilih inspeksi, cek harga, atau cari kendaraan di marketplace</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card text-center">
+                        <div class="step-number">3</div>
+                        <h5 class="fw-bold mb-3">Proses Profesional</h5>
+                        <p class="text-muted">Tim kami akan memproses permintaan dengan profesional & transparan</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="step-card text-center">
+                        <div class="step-number">4</div>
+                        <h5 class="fw-bold mb-3">Terima Hasil</h5>
+                        <p class="text-muted">Dapatkan laporan lengkap & transaksi dengan aman</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Keunggulan Section -->
+    <section id="keunggulan" class="py-5">
+        <div class="container py-5">
+            <div class="row align-items-center">
+                <div class="col-lg-6 mb-4 mb-lg-0">
+                    <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=800" alt="Keunggulan OTOMAN" class="img-fluid rounded-4 shadow">
+                </div>
+                <div class="col-lg-6">
+                    <span class="badge bg-primary bg-opacity-10 text-primary mb-3">MENGAPA OTOMAN?</span>
+                    <h2 class="display-5 fw-bold mb-4">Keunggulan yang Kami Tawarkan</h2>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="feature-item">
+                                <div class="feature-icon-small bg-primary text-white rounded-circle me-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-shield-check" viewBox="0 0 16 16">
+                                        <path d="M5.338 1.59a61.44 61.44 0 0 0-2.837.856.481.481 0 0 0-.328.39c-.554 4.157.726 7.19 2.253 9.188a10.725 10.725 0 0 0 2.287 2.233c.346.244.652.42.893.533.12.057.218.095.293.118a.55.55 0 0 0 .101.025.615.615 0 0 0 .1-.025c.076-.023.174-.061.294-.118.24-.113.547-.29.893-.533a10.726 10.726 0 0 0 2.287-2.233c1.527-1.997 2.807-5.031 2.253-9.188a.48.48 0 0 0-.328-.39c-.651-.213-1.75-.56-2.837-.855C9.552 1.29 8.531 1.067 8 1.067c-.53 0-1.552.223-2.662.524zM5.072.56C6.157.265 7.31 0 8 0s1.843.265 2.928.56c1.11.3 2.229.655 2.887.87a1.54 1.54 0 0 1 1.044 1.262c.596 4.477-.787 7.795-2.465 9.99a11.775 11.775 0 0 1-2.517 2.453 7.159 7.159 0 0 1-1.048.625c-.28.132-.581.24-.829.24s-.548-.108-.829-.24a7.158 7.158 0 0 1-1.048-.625 11.777 11.777 0 0 1-2.517-2.453C1.928 10.487.545 7.169 1.141 2.692A1.54 1.54 0 0 1 2.185 1.43 62.456 62.456 0 0 1 5.072.56z"/>
+                                        <path d="M10.854 5.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Terverifikasi</h6>
+                                    <small class="text-muted">100% inspected by professionals</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="feature-item">
+                                <div class="feature-icon-small bg-success text-white rounded-circle me-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-currency-dollar" viewBox="0 0 16 16">
+                                        <path d="M5.5 9.5A.5.5 0 0 1 6 9h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z"/>
+                                        <path d="M4 1.563v10.254c0 .349.273.634.615.678A7.986 7.986 0 0 1 8 14c1.32 0 2.554-.395 3.584-1.069a.678.678 0 0 1 .621.099c.234.192.555.152.805-.066.25-.218.312-.548.174-.816a6.983 6.983 0 0 0-3.084-2.87V1.563c-.236-.074-.482-.114-.738-.114H4c-.236 0-.482.04-.718.114zM14 8c0 .938-.244 1.824-.681 2.615a.68.68 0 0 1-.622.32.673.673 0 0 1-.605-.349c-.136-.267-.074-.597.175-.816A5.983 5.983 0 0 0 14 8z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Harga Wajar</h6>
+                                    <small class="text-muted">Estimasi akurat dengan ML</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="feature-item">
+                                <div class="feature-icon-small bg-warning text-white rounded-circle me-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-lightning-charge" viewBox="0 0 16 16">
+                                        <path d="M11.251.068a.5.5 0 0 1 .227.58L9.677 6.5H13a.5.5 0 0 1 .364.843l-8 8.5a.5.5 0 0 1-.842-.49L6.323 9.5H3a.5.5 0 0 1-.364-.843l8-8.5a.5.5 0 0 1 .615-.09z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Proses Cepat</h6>
+                                    <small class="text-muted">Hasil instan & realtime</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="feature-item">
+                                <div class="feature-icon-small bg-info text-white rounded-circle me-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-headset" viewBox="0 0 16 16">
+                                        <path d="M8 1a5 5 0 0 0-5 5v1h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V6a6 6 0 1 1 12 0v6a2.5 2.5 0 0 1-2.5 2.5H9.366a1 1 0 0 1-.866.5h-1a1 1 0 1 1 0-2h1a1 1 0 0 1 .866.5H11.5A1.5 1.5 0 0 0 13 12h-1a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h1V6a5 5 0 0 0-5-5z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Support 24/7</h6>
+                                    <small class="text-muted">Bantuan kapan saja</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marketplace Preview Section -->
+    <section id="marketplace" class="py-5 bg-light">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="badge bg-warning bg-opacity-10 text-warning mb-3">MARKETPLACE</span>
+                <h2 class="display-5 fw-bold mb-3">Kendaraan Terverifikasi Pilihan</h2>
+                <p class="lead text-muted">Temukan kendaraan impian Anda yang telah melalui inspeksi menyeluruh</p>
+            </div>
+
+            <div class="row g-4">
+                <!-- Car Listing 1 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="car-card">
+                        <div class="position-relative">
+                            <img src="Assets/Honda-Jazz.jpg" alt="Honda Jazz" class="card-img-top">
+                            <span class="badge bg-success position-absolute top-0 start-0 m-3">Verified</span>
+                        </div>
+                        <div class="card-body p-3">
+                            <h5 class="fw-bold mb-2">Honda Jazz RS 2021</h5>
+                            <p class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Jakarta Selatan</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h5 mb-0 text-primary fw-bold">Rp 235.000.000</span>
+                                <small class="text-muted">25.000 km</small>
+                            </div>
+                            <a href="#" class="btn btn-primary w-100">
+                                <i class="bi bi-whatsapp me-2"></i>Hubungi Penjual
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Car Listing 2 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="car-card">
+                        <div class="position-relative">
+                            <img src="Assets/innova.png" width="500" alt="Toyota Innova" class="card-img-top">
+                            <span class="badge bg-success position-absolute top-0 start-0 m-3">Verified</span>
+                        </div>
+                        <div class="card-body p-3">
+                            <h5 class="fw-bold mb-2">Toyota Innova Reborn 2020</h5>
+                            <p class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Bandung</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h5 mb-0 text-primary fw-bold">Rp 320.000.000</span>
+                                <small class="text-muted">45.000 km</small>
+                            </div>
+                            <a href="#" class="btn btn-primary w-100">
+                                <i class="bi bi-whatsapp me-2"></i>Hubungi Penjual
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Car Listing 3 -->
+                <div class="col-lg-4 col-md-6">
+                    <div class="car-card">
+                        <div class="position-relative">
+                            <img src="Assets/bmw-320i_2.jpg" width="500" alt="BMW 320i" class="card-img-top">
+                            <span class="badge bg-success position-absolute top-0 start-0 m-3">Verified</span>
+                        </div>
+                        <div class="card-body p-3">
+                            <h5 class="fw-bold mb-2">BMW 320i Sport 2019</h5>
+                            <p class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Surabaya</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="h5 mb-0 text-primary fw-bold">Rp 525.000.000</span>
+                                <small class="text-muted">35.000 km</small>
+                            </div>
+                            <a href="#" class="btn btn-primary w-100">
+                                <i class="bi bi-whatsapp me-2"></i>Hubungi Penjual
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="#" class="btn btn-outline-primary btn-lg">Lihat Semua Kendaraan</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="py-5">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary mb-3">TESTIMONI</span>
+                <h2 class="display-5 fw-bold mb-3">Apa Kata Mereka?</h2>
+                <p class="lead text-muted">Pengalaman nyata dari pengguna OTOMAN</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <p class="mb-4">"Saya hampir tertipu membeli mobil bekas yang pernah banjir. Berkat inspeksi OTOMAN, saya tahu kondisi aslinya dan mengurungkan niat beli. Terima kasih OTOMAN!"</p>
+                            <div class="d-flex align-items-center">
+                                <img src="https://i.pravatar.cc/100?img=1" alt="User" class="rounded-circle me-3">
+                                <div>
+                                    <h6 class="fw-bold mb-0">Budi Santoso</h6>
+                                    <small class="text-muted">Pengusaha, Jakarta</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <p class="mb-4">"Fitur penaksiran harga sangat akurat! Saya jadi tahu harga wajar mobil yang saya incar dan bisa nego dengan percaya diri. Sangat recommended!"</p>
+                            <div class="d-flex align-items-center">
+                                <img src="https://i.pravatar.cc/100?img=5" alt="User" class="rounded-circle me-3">
+                                <div>
+                                    <h6 class="fw-bold mb-0">Siti Rahayu</h6>
+                                    <small class="text-muted">Wiraswasta, Surabaya</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="testimonial-card">
+                        <div class="testimonial-content">
+                            <p class="mb-4">"Beli mobil di marketplace OTOMAN sangat aman. Semua unit sudah terverifikasi dan ada laporan inspeksi lengkap. Puas banget dengan pembelian saya!"</p>
+                            <div class="d-flex align-items-center">
+                                <img src="https://i.pravatar.cc/100?img=3" alt="User" class="rounded-circle me-3">
+                                <div>
+                                    <h6 class="fw-bold mb-0">Ahmad Rizki</h6>
+                                    <small class="text-muted">Karyawan Swasta, Bandung</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container py-5">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8">
+                    <h2 class="display-4 fw-bold mb-4">Siap Membeli Kendaraan Bekas dengan Aman?</h2>
+                    <p class="lead mb-5">Bergabunglah dengan ribuan pengguna yang telah merasakan kemudahan dan keamanan bertransaksi kendaraan bekas bersama OTOMAN</p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="register.html" class="btn btn-warning btn-lg px-5 fw-bold">
+                            Daftar Gratis Sekarang
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right ms-2" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                            </svg>
+                        </a>
+                        <a href="#layanan" class="btn btn-outline-light btn-lg px-4">
+                            Pelajari Lebih Lanjut
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="d-flex align-items-center mb-3">
+                        
+                        <span class="fw-bold fs-4">OTOMAN</span>
+                    </div>
+                    <p class="text-white-50 mb-4">Platform otomotif terpercaya untuk pengecekan kendaraan bekas, penaksiran harga, dan marketplace kendaraan terverifikasi.</p>
+                    
+                </div>
+                <div class="col-lg-2 col-md-4">
+                    <h6 class="fw-bold mb-3">Layanan</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="inspection.html" class="text-white-50 text-decoration-none">Inspeksi Kendaraan</a></li>
+                        <li class="mb-2"><a href="estimation.html" class="text-white-50 text-decoration-none">Penaksiran Harga</a></li>
+                        <li class="mb-2"><a href="#marketplace" class="text-white-50 text-decoration-none">Marketplace</a></li>
+                    </ul>
+                </div>
+             
+                <div class="col-lg-2 col-md-4">
+                    <h6 class="fw-bold mb-3">Bantuan</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Kontak</a></li>
+                        <li class="mb-2"><a href="#" class="text-white-50 text-decoration-none">Syarat & Ketentuan</a></li>
+                    </ul>
+                </div>
+                
+            </div>
+            <hr class="my-4 border-secondary">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="text-white-50 mb-0">&copy; 2025 OTOMAN. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="#" class="text-white-50 text-decoration-none me-3">Privacy Policy</a>
+                    <a href="#" class="text-white-50 text-decoration-none">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scroll to Top Button -->
+    <button id="scrollTop" class="btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-up" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
+        </svg>
+    </button>
+
+    <!-- Bootstrap JS -->
     <script src="js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <!-- App JavaScript -->
+    <script src="js/app.js"></script>
+
+    <!-- Landing Page JavaScript -->
+    <script src="js/landing.js"></script>
 
 </body>
 </html>
