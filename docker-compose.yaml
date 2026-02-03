@@ -16,10 +16,10 @@ services:
     build: ./laravel
     container_name: otoman-backend
     ports:
-    - "8000:8000"
+      - "8000:8000"
     volumes:
-    - ./laravel:/var/www
-    - /var/www/vendor
+      - ./laravel:/var/www
+      - laravel_vendor:/var/www/vendor
     environment:
       DB_HOST: db
       DB_DATABASE: otoman
@@ -28,7 +28,8 @@ services:
     depends_on:
       - db
       - ml-service
-    command: sleep infinity
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    restart: always
 
   ml-service:
     build: ./ml-service
@@ -68,3 +69,4 @@ services:
 
 volumes:
   mysql_data:
+  laravel_vendor:

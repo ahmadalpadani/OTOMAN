@@ -74,6 +74,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // If already logged in (token exists), redirect
+    const existingToken = localStorage.getItem('otoman_token');
+    const existingUser = localStorage.getItem('otoman_user');
+    if (existingToken && existingUser) {
+        // Optional: tampilkan toast singkat
+        showSuccessAlert('Anda sudah login. Mengalihkan...');
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 800);
+        return;
+    }
+
     // Form Submit Handler
     loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
@@ -105,41 +117,30 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set loading
         setLoading(true);
 
-        // Simulate API Call
-        // TODO: Ganti dengan API call sebenarnya
+        // Real API Call (Laravel)
         try {
-            // Simulasi delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // apiPost() + saveAuth() disediakan oleh js/api.js
+            const data = await apiPost(
+            "/auth/login",
+            { email, password },
+            { auth: false }
+            );
 
-            // Demo: Cek hardcoded credentials
-            // Hapus ini dan ganti dengan API call
-            const demoCredentials = {
-                email: 'admin@otoman.com',
-                password: 'admin123'
-            };
 
-            if (email === demoCredentials.email && password === demoCredentials.password) {
-                // Login success
-                showSuccessAlert('Login berhasil! Mengalihkan...');
+            // expected response: { message, user, token }
+            saveAuth(data);
 
-                // Simpan session
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('userEmail', email);
+            showSuccessAlert('Login berhasil! Mengalihkan...');
 
-                // Redirect ke dashboard
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 1500);
-            } else {
-                // Login failed
-                showAlert('Email atau password salah!');
-                passwordInput.value = '';
-                passwordInput.focus();
-            }
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 900);
 
         } catch (error) {
             console.error('Login error:', error);
-            showAlert('Terjadi kesalahan. Silakan coba lagi.');
+            showAlert(error.message || 'Email atau password salah!');
+            passwordInput.value = '';
+            passwordInput.focus();
         } finally {
             setLoading(false);
         }
@@ -153,15 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
     passwordInput.addEventListener('input', function() {
         this.classList.remove('is-valid', 'is-invalid');
     });
-
-    // Check if already logged in
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    if (isLoggedIn === 'true') {
-        showSuccessAlert('Anda sudah login!');
-        setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 1000);
-    }
 
     // Enter key navigation
     emailInput.addEventListener('keypress', function(e) {

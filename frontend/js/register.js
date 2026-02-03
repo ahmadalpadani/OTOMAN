@@ -217,37 +217,31 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set loading
         setLoading(true);
 
-        // Simulate API Call
-        // TODO: Ganti dengan API call sebenarnya
+        // Real API Call (Laravel) <ammar>
         try {
-            // Simulasi delay
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Demo: Simulasi registrasi berhasil
-            // Hapus ini dan ganti dengan API call
-            // Simpan data user (untuk demo)
-            const userData = {
+            const payload = {
                 name: name,
                 email: email,
-                phone: phone,
-                registeredAt: new Date().toISOString()
+                phone: phone.replace(/[\s-]/g, ''), // rapihin
+                password: password
             };
 
-            // Simpan ke localStorage untuk demo
-            localStorage.setItem('userData', JSON.stringify(userData));
+            clearAuth(); // optional: kalau mau pastikan bersih dulu
+            const data = await apiPost("/auth/register", payload, { auth: false });
 
-            // Registrasi success
-            showSuccessAlert('Registrasi berhasil! Mengalihkan ke halaman login...');
 
-            // Redirect ke halaman login
+            saveAuth(data);
+
+            showSuccessAlert('Registrasi berhasil! Mengalihkan ke beranda...');
+
             setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 2000);
+                window.location.href = 'index.html';
+            }, 1200);
 
-        } catch (error) {
+            } catch (error) {
             console.error('Registration error:', error);
-            showAlert('Terjadi kesalahan. Silakan coba lagi.');
-        } finally {
+            showAlert(error.message || 'Terjadi kesalahan. Silakan coba lagi.');
+            } finally {
             setLoading(false);
         }
     });
