@@ -232,10 +232,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
             saveAuth(data);
 
-            showSuccessAlert('Registrasi berhasil! Mengalihkan ke beranda...');
+            showSuccessAlert('Registrasi berhasil! Mengalihkan ke dashboard...');
 
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'dashboard/dashboard.html';
             }, 1200);
 
             } catch (error) {
