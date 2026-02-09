@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesan Inspeksi - OTOMAN</title>
+    <meta name="description" content="Pesan layanan inspeksi kendaraan bekas oleh OTOMAN">
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/inspection.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="inspection-page">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-car-front-fill me-2"></i>OTOMAN
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#layanan">Layanan</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html#marketplace">Marketplace</a>
+                    </li>
+                </ul>
+                <div class="d-flex gap-2" id="authButtons">
+                    <a href="login.html" class="btn btn-outline-light btn-sm px-4">Masuk</a>
+                    <a href="register.html" class="btn btn-light btn-sm px-4">Daftar</a>
+                </div>
+                <div class="d-none align-items-center" id="userInfo">
+                    <span class="text-white me-3" id="userEmail"></span>
+                    <a href="dashboard/dashboard.html" class="btn btn-warning btn-sm me-2">Dashboard</a>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">Keluar</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <span class="badge bg-warning text-dark mb-3">
+                        <i class="bi bi-clipboard-check me-1"></i>Layanan Inspeksi
+                    </span>
+                    <h1 class="display-5 fw-bold text-white mb-3">Pesan Inspeksi Kendaraan</h1>
+                    <p class="lead text-white-50">Isi formulir di bawah ini untuk menjadwalkan inspeksi kendaraan bekas Anda oleh teknisi profesional OTOMAN</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Inspection Form Section -->
+    <section class="inspection-form-section py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="inspection-form-card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clipboard2-check me-2"></i>Formulir Pemesanan Inspeksi
+                            </h5>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- Progress Steps -->
+                            <div class="progress-steps mb-5">
+                                <div class="step active" data-step="1">
+                                    <div class="step-number">1</div>
+                                    <div class="step-label">Data Kendaraan</div>
+                                </div>
+                                <div class="step-connector"></div>
+                                <div class="step" data-step="2">
+                                    <div class="step-number">2</div>
+                                    <div class="step-label">Jadwal & Lokasi</div>
+                                </div>
+                                <div class="step-connector"></div>
+                                <div class="step" data-step="3">
+                                    <div class="step-number">3</div>
+                                    <div class="step-label">Konfirmasi</div>
+                                </div>
+                            </div>
+
+                            <!-- Form -->
+                            <form id="inspectionForm">
+                                <!-- Step 1: Vehicle Data -->
+                                <div class="form-step active" id="step1">
+                                    <h6 class="section-title mb-4">
+                                        <i class="bi bi-car-front me-2"></i>Informasi Kendaraan
+                                    </h6>
+
+                                    <!-- Vehicle Type -->
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-12">
+                                            <label class="form-label fw-semibold">Jenis Kendaraan <span class="text-danger">*</span></label>
+                                            <div class="vehicle-type-selector">
+                                                <input type="radio" name="vehicleType" id="vehicleCar" value="mobil" class="d-none" required>
+                                                <label for="vehicleCar" class="vehicle-type-card">
+                                                    <div class="type-icon">
+                                                        <i class="bi bi-car-front"></i>
+                                                    </div>
+                                                    <div class="type-label">Mobil</div>
+                                                </label>
+
+                                                <input type="radio" name="vehicleType" id="vehicleMotor" value="motor" class="d-none">
+                                                <label for="vehicleMotor" class="vehicle-type-card">
+                                                    <div class="type-icon">
+                                                        <i class="bi bi-bicycle"></i>
+                                                    </div>
+                                                    <div class="type-label">Motor</div>
+                                                </label>
+                                            </div>
+                                            <div class="invalid-feedback d-block" id="vehicleTypeError"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Brand & Model -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="vehicleBrand" class="form-label">Merek Kendaraan <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="vehicleBrand" required>
+                                                <option value="">Pilih Merek</option>
+                                                <optgroup label="Mobil Populer">
+                                                    <option value="toyota">Toyota</option>
+                                                    <option value="honda">Honda</option>
+                                                    <option value="suzuki">Suzuki</option>
+                                                    <option value="daihatsu">Daihatsu</option>
+                                                    <option value="mitsubishi">Mitsubishi</option>
+                                                    <option value="nissan">Nissan</option>
+                                                    <option value="bmw">BMW</option>
+                                                    <option value="mercedes">Mercedes-Benz</option>
+                                                    <option value="vw">Volkswagen</option>
+                                                </optgroup>
+                                                <optgroup label="Motor Populer">
+                                                    <option value="honda_motor">Honda</option>
+                                                    <option value="yamaha">Yamaha</option>
+                                                    <option value="suzuki_motor">Suzuki</option>
+                                                    <option value="kawasaki">Kawasaki</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="vehicleModel" class="form-label">Model <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="vehicleModel" placeholder="Contoh: Jazz RS, Vario 150" required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Year & Mileage -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="vehicleYear" class="form-label">Tahun Produksi <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="vehicleYear" required>
+                                                <option value="">Pilih Tahun</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="vehicleMileage" class="form-label">Kilometer (km) <span class="text-danger">*</span></label>
+                                            <input type="number" class="form-control" id="vehicleMileage" placeholder="Contoh: 50000" min="0" required>
+                                        </div>
+                                    </div>
+
+                                    <!-- Condition -->
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold">Kondisi Kendaraan <span class="text-danger">*</span></label>
+                                        <div class="condition-selector">
+                                            <input type="radio" name="vehicleCondition" id="conditionExcellent" value="excellent" class="d-none" required>
+                                            <label for="conditionExcellent" class="condition-card">
+                                                <i class="bi bi-star-fill text-success"></i>
+                                                <span>Sangat Baik</span>
+                                            </label>
+
+                                            <input type="radio" name="vehicleCondition" id="conditionGood" value="good" class="d-none">
+                                            <label for="conditionGood" class="condition-card">
+                                                <i class="bi bi-check-circle text-primary"></i>
+                                                <span>Baik</span>
+                                            </label>
+
+                                            <input type="radio" name="vehicleCondition" id="conditionFair" value="fair" class="d-none">
+                                            <label for="conditionFair" class="condition-card">
+                                                <i class="bi bi-exclamation-circle text-warning"></i>
+                                                <span>Cukup</span>
+                                            </label>
+
+                                            <input type="radio" name="vehicleCondition" id="conditionPoor" value="poor" class="d-none">
+                                            <label for="conditionPoor" class="condition-card">
+                                                <i class="bi bi-dash-circle text-danger"></i>
+                                                <span>Kurang</span>
+                                            </label>
+                                        </div>
+                                        <div class="invalid-feedback d-block" id="conditionError"></div>
+                                    </div>
+
+                                    <!-- Additional Notes -->
+                                    <div class="mb-4">
+                                        <label for="vehicleNotes" class="form-label">Catatan Tambahan (Opsional)</label>
+                                        <textarea class="form-control" id="vehicleNotes" rows="3" placeholder="Jelaskan kondisi khusus, keluhan, atau hal yang perlu diperhatikan..."></textarea>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end">
+                                        <button type="button" class="btn btn-primary btn-next-step" data-next="2">
+                                            Lanjut
+                                            <i class="bi bi-arrow-right ms-2"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 2: Schedule & Location -->
+                                <div class="form-step" id="step2">
+                                    <h6 class="section-title mb-4">
+                                        <i class="bi bi-calendar-check me-2"></i>Jadwal & Lokasi Inspeksi
+                                    </h6>
+
+                                    <!-- Inspection Date -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <label for="inspectionDate" class="form-label">Tanggal Inspeksi <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" id="inspectionDate" required>
+                                            <small class="text-muted">Minimal 2 hari dari hari ini</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="inspectionTime" class="form-label">Waktu Inspeksi <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="inspectionTime" required>
+                                                <option value="">Pilih Waktu</option>
+                                                <option value="08:00-10:00">08:00 - 10:00</option>
+                                                <option value="10:00-12:00">10:00 - 12:00</option>
+                                                <option value="13:00-15:00">13:00 - 15:00</option>
+                                                <option value="15:00-17:00">15:00 - 17:00</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <!-- Location -->
+                                    <div class="mb-3">
+                                        <label for="inspectionProvince" class="form-label">Provinsi <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="inspectionProvince" required>
+                                            <option value="">Pilih Provinsi</option>
+                                            <option value="DKI Jakarta">DKI Jakarta</option>
+                                            <option value="Jawa Barat">Jawa Barat</option>
+                                            <option value="Jawa Tengah">Jawa Tengah</option>
+                                            <option value="Jawa Timur">Jawa Timur</option>
+                                            <option value="Banten">Banten</option>
+                                            <option value="DI Yogyakarta">DI Yogyakarta</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="inspectionCity" class="form-label">Kota/Kabupaten <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="inspectionCity" placeholder="Contoh: Jakarta Selatan" required>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="inspectionAddress" class="form-label">Alamat Lengkap <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="inspectionAddress" rows="2" placeholder="Nama jalan, nomor rumah, RT/RW, kecamatan..." required></textarea>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label for="contactPhone" class="form-label">No. Telepon yang Dapat Dihubungi <span class="text-danger">*</span></label>
+                                        <input type="tel" class="form-control" id="contactPhone" placeholder="08xxxxxxxxxx" required>
+                                        <small class="text-muted">Inspektor akan menghubungi nomor ini sebelum kedatangan</small>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary btn-prev-step" data-prev="1">
+                                            <i class="bi bi-arrow-left me-2"></i>
+                                            Kembali
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-next-step" data-next="3">
+                                            Lanjut
+                                            <i class="bi bi-arrow-right ms-2"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 3: Confirmation -->
+                                <div class="form-step" id="step3">
+                                    <h6 class="section-title mb-4">
+                                        <i class="bi bi-check-circle me-2"></i>Konfirmasi Pemesanan
+                                    </h6>
+
+                                    <!-- Summary Card -->
+                                    <div class="summary-card mb-4">
+                                        <h6 class="summary-title">Ringkasan Inspeksi</h6>
+
+                                        <div class="summary-section">
+                                            <h6 class="summary-section-title">Data Kendaraan</h6>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Jenis:</span>
+                                                <span class="summary-value" id="summaryType">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Merek & Model:</span>
+                                                <span class="summary-value" id="summaryModel">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Tahun:</span>
+                                                <span class="summary-value" id="summaryYear">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Kilometer:</span>
+                                                <span class="summary-value" id="summaryMileage">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Kondisi:</span>
+                                                <span class="summary-value" id="summaryCondition">-</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="summary-section">
+                                            <h6 class="summary-section-title">Jadwal & Lokasi</h6>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Tanggal:</span>
+                                                <span class="summary-value" id="summaryDate">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Waktu:</span>
+                                                <span class="summary-value" id="summaryTime">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Lokasi:</span>
+                                                <span class="summary-value" id="summaryLocation">-</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="summary-section">
+                                            <h6 class="summary-section-title">Biaya</h6>
+                                            <div class="summary-item total">
+                                                <span class="summary-label">Total Inspeksi:</span>
+                                                <span class="summary-value text-primary fw-bold" id="summaryPrice">Rp 350.000</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Terms -->
+                                    <div class="form-check mb-4">
+                                        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                        <label class="form-check-label" for="agreeTerms">
+                                            Saya setuju dengan <a href="#" class="text-primary">syarat & ketentuan</a> yang berlaku
+                                        </label>
+                                        <div class="invalid-feedback">Anda harus menyetujui syarat & ketentuan</div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary btn-prev-step" data-prev="2">
+                                            <i class="bi bi-arrow-left me-2"></i>
+                                            Kembali
+                                        </button>
+                                        <button type="submit" class="btn btn-success btn-submit">
+                                            <i class="bi bi-check-circle me-2"></i>Konfirmasi Pesanan
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Success Message -->
+                                <div class="form-step success-step" id="successStep">
+                                    <div class="text-center py-5">
+                                        <div class="success-icon mb-4">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </div>
+                                        <h4 class="mb-3">Pesanan Berhasil!</h4>
+                                        <p class="text-muted mb-4">
+                                            Terima kasih telah memesan layanan inspeksi OTOMAN. Tim kami akan menghubungi Anda segera untuk konfirmasi jadwal.
+                                        </p>
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <strong>Kode Pesanan:</strong> <span id="orderCode">INS-XXXXX</span>
+                                        </div>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <a href="dashboard/dashboard.html" class="btn btn-primary">
+                                                <i class="bi bi-speedometer2 me-2"></i>Ke Dashboard
+                                            </a>
+                                            <a href="index.html" class="btn btn-outline-primary">
+                                                <i class="bi bi-house me-2"></i>Kembali ke Beranda
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Info Card -->
+                    <div class="info-card mt-4">
+                        <div class="info-icon">
+                            <i class="bi bi-info-circle"></i>
+                        </div>
+                        <div class="info-content">
+                            <h6 class="info-title">Yang Akan Diperiksa</h6>
+                            <ul class="info-list">
+                                <li>Kondisi mesin & performa</li>
+                                <li>Rangka & bodi kendaraan</li>
+                                <li>Sistem kelistrikan</li>
+                                <li>Interior & eksterior</li>
+                                <li>Riwayat kecelakaan & banjir</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; 2025 OTOMAN. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="#" class="text-white-50 text-decoration-none me-3">Privacy Policy</a>
+                    <a href="#" class="text-white-50 text-decoration-none">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999">
+        <div id="inspectionToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="js/bootstrap.bundle.min.js"></script>
+
+    <!-- API JS -->
+    <script src="js/api.js"></script>
+
+    <!-- App JS -->
+    <script src="js/app.js"></script>
+
+    <!-- Inspection JS -->
+    <script src="js/inspection.js"></script>
+
+</body>
+</html>

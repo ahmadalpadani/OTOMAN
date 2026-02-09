@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Optional: tampilkan toast singkat
         showSuccessAlert('Anda sudah login. Mengalihkan...');
         setTimeout(() => {
-            window.location.href = 'index.html';
+            window.location.href = 'dashboard/dashboard.html';
         }, 800);
         return;
     }
@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showSuccessAlert('Login berhasil! Mengalihkan...');
 
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'dashboard/dashboard.html';
             }, 900);
 
         } catch (error) {

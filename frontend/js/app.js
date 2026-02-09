@@ -7,12 +7,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Update UI berdasarkan status login
     function checkLoginStatus() {
-        const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const token = localStorage.getItem('otoman_token');
+        const userStr = localStorage.getItem('otoman_user');
+        const user = userStr ? JSON.parse(userStr) : null;
+
         const authButtons = document.getElementById('authButtons');
         const userInfo = document.getElementById('userInfo');
         const userEmail = document.getElementById('userEmail');
 
-        if (isLoggedIn) {
+        if (token && user) {
             // User sudah login
             if (authButtons) authButtons.classList.add('d-none');
             if (userInfo) {
@@ -20,9 +23,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 userInfo.classList.add('d-flex');
             }
             if (userEmail) {
-                const email = localStorage.getItem('userEmail') || 'User';
-                userEmail.textContent = email;
+                userEmail.textContent = user.name || user.email || 'User';
             }
+
+            // Add dashboard link if not exists
+            addDashboardLink();
         } else {
             // User belum login
             if (authButtons) authButtons.classList.remove('d-none');
@@ -32,14 +37,41 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+
+    // Add dashboard link to navbar
+    function addDashboardLink() {
+        const navbarNav = document.querySelector('#navbarNav .navbar-nav');
+        if (!navbarNav) return;
+
+        // Check if dashboard link already exists
+        if (navbarNav.querySelector('.dashboard-link')) return;
+
+        // Create dashboard link
+        const dashboardLi = document.createElement('li');
+        dashboardLi.className = 'nav-item dashboard-link';
+        dashboardLi.innerHTML = `
+            <a class="nav-link text-warning fw-bold" href="dashboard/dashboard.html">
+                <i class="bi bi-speedometer2 me-1"></i>Dashboard
+            </a>
+        `;
+
+        // Insert after the last nav item
+        const lastNav = navbarNav.lastElementChild;
+        navbarNav.insertBefore(dashboardLi, lastNav);
+    }
 });
 
-// Fungsi Logout (global)
+// Fungsi Logout (global) - menggunakan clearAuth dari api.js
 function logout() {
     if (confirm('Apakah Anda yakin ingin keluar?')) {
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('userToken');
+        // Use clearAuth from api.js
+        if (typeof clearAuth === 'function') {
+            clearAuth();
+        } else {
+            // Fallback if api.js not loaded
+            localStorage.removeItem('otoman_token');
+            localStorage.removeItem('otoman_user');
+        }
 
         // Redirect ke login
         window.location.href = 'login.html';
@@ -79,7 +111,7 @@ function showToast(message, type = 'info') {
     if (!toastContainer) {
         toastContainer = document.createElement('div');
         toastContainer.className = 'toast-container-position position-fixed top-0 end-0 p-3';
-        toastContainer.style.zIndex = '11';
+        toastContainer.style.zIndex = '9999';
         document.body.appendChild(toastContainer);
     }
 
@@ -119,7 +151,7 @@ const API = {
     baseUrl: 'http://localhost:8000/api', // Ganti dengan URL backend sebenarnya
 
     async request(endpoint, options = {}) {
-        const token = localStorage.getItem('userToken');
+        const token = localStorage.getItem('otoman_token');
 
         const defaultOptions = {
             headers: {
