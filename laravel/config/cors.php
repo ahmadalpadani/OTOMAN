@@ -5,9 +5,9 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'https://symmetrical-meme-q4wr45j567vc6x74-3000.app.github.dev',
-    ],
+    'allowed_origins' => ['http://localhost:3000'],
+
+    'allowed_origins_patterns' => [],
 
     'allowed_headers' => ['*'],
 
@@ -15,5 +15,5 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true, // <-- kalau kamu pakai credentials: "include"
+    'supports_credentials' => false,
 ];
