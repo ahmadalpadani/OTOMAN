@@ -7,9 +7,10 @@ services:
     ports:
       - "3000:80"
     volumes:
-      - ./frontend:/usr/share/nginx/html
+      - ./frontend:/usr/share/nginx/html:ro
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: always
 
   backend:
@@ -21,14 +22,31 @@ services:
       - ./laravel:/var/www
       - laravel_vendor:/var/www/vendor
     environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8000
+
+      DB_CONNECTION: mysql
       DB_HOST: db
+      DB_PORT: 3306
       DB_DATABASE: otoman
       DB_USERNAME: otoman
       DB_PASSWORD: otomanpass
+
+      # Optional tapi membantu kalau kamu pakai session/cache/queue database
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+
     depends_on:
-      - db
-      - ml-service
+      db:
+        condition: service_healthy
     command: php artisan serve --host=0.0.0.0 --port=8000
+    healthcheck:
+      test: ["CMD-SHELL", "php -r \"exit(@file_get_contents('http://127.0.0.1:8000')===false);\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
     restart: always
 
   ml-service:
@@ -43,7 +61,6 @@ services:
   db:
     image: mysql:8.0
     container_name: otoman-db
-    restart: always
     environment:
       MYSQL_DATABASE: otoman
       MYSQL_USER: otoman
@@ -53,11 +70,16 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -prootpass --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+    restart: always
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: otoman-phpmyadmin
-    restart: always
     ports:
       - "8080:80"
     environment:
@@ -65,7 +87,9 @@ services:
       PMA_USER: root
       PMA_PASSWORD: rootpass
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    restart: always
 
 volumes:
   mysql_data:
