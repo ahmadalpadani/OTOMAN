@@ -67,6 +67,12 @@ function getUser() {
 function clearAuth() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+
+  // Clear any cached data
+  delete window.inspectionsData;
+
+  // Optional: Clear all localStorage (uncomment if you want to clear everything)
+  // localStorage.clear();
 }
 
 // ---------- RESPONSE HELPERS ----------

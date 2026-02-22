@@ -2,6 +2,11 @@
 
 document.addEventListener('DOMContentLoaded', function() {
 
+    // DEBUG: Clear all cached data on load
+    console.log('[Dashboard] Clearing all cached data...');
+    delete window.inspectionsData;
+    localStorage.removeItem('inspectionsCache');
+
     // Check authentication
     checkAuth();
 
@@ -166,46 +171,106 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadStatistics() {
         try {
-            // Mock data for now - replace with API call
-            // const data = await apiGet('/user/statistics');
+            // Load inspections data from API
+            const response = await apiGet('/inspections');
 
-            // Mock data
-            const stats = {
-                total_inspections: 0,
-                pending_inspections: 0
-            };
+            // Handle pagination response
+            const inspections = response.data?.data || [];
+
+            // Calculate statistics
+            const totalInspections = inspections.length;
+            const pendingInspections = inspections.filter(i => i.status === 'pending').length;
 
             // Update UI
             const totalInspectionsEl = document.getElementById('totalInspections');
             const pendingInspectionsEl = document.getElementById('pendingInspections');
 
-            if (totalInspectionsEl) totalInspectionsEl.textContent = stats.total_inspections;
-            if (pendingInspectionsEl) pendingInspectionsEl.textContent = stats.pending_inspections;
+            if (totalInspectionsEl) totalInspectionsEl.textContent = totalInspections;
+            if (pendingInspectionsEl) pendingInspectionsEl.textContent = pendingInspections;
 
         } catch (error) {
             console.error('Error loading statistics:', error);
+
+            // Set to 0 on error
+            const totalInspectionsEl = document.getElementById('totalInspections');
+            const pendingInspectionsEl = document.getElementById('pendingInspections');
+
+            if (totalInspectionsEl) totalInspectionsEl.textContent = '0';
+            if (pendingInspectionsEl) pendingInspectionsEl.textContent = '0';
         }
     }
 
     async function loadRecentActivity() {
         try {
-            // Mock data for now - replace with API call
-            // const data = await apiGet('/user/activities');
+            // Load inspections from API
+            const response = await apiGet('/inspections');
 
+            // Handle pagination response
+            const inspections = response.data?.data || [];
             const activityContainer = document.getElementById('recentActivity');
+
             if (!activityContainer) return;
 
-            // Show empty state if no activities
-            // activityContainer.innerHTML = `
-            //     <div class="text-center text-muted py-5">
-            //         <i class="bi bi-inbox fs-1"></i>
-            //         <p class="mt-3">Belum ada aktivitas</p>
-            //         <a href="../inspection.html" class="btn btn-primary btn-sm">Mulai Sekarang</a>
-            //     </div>
-            // `;
+            // Get latest 3 inspections
+            const recentInspections = inspections.slice(0, 3);
+
+            if (recentInspections.length === 0) {
+                activityContainer.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-1"></i>
+                        <p class="mt-3">Belum ada aktivitas</p>
+                        <a href="../inspection.html" class="btn btn-primary btn-sm">Mulai Sekarang</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // Render activity items
+            activityContainer.innerHTML = recentInspections.map(inspection => {
+                const statusClass = {
+                    'pending': 'warning',
+                    'in_progress': 'primary',
+                    'completed': 'success'
+                }[inspection.status] || 'secondary';
+
+                const statusLabel = {
+                    'pending': 'Menunggu',
+                    'in_progress': 'Dalam Proses',
+                    'completed': 'Selesai'
+                }[inspection.status] || 'Unknown';
+
+                const typeIcon = inspection.vehicle_type === 'mobil' ? 'bi-car-front' : 'bi-bicycle';
+
+                return `
+                    <div class="activity-item d-flex align-items-start mb-3">
+                        <div class="activity-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi ${typeIcon}"></i>
+                        </div>
+                        <div class="activity-content flex-grow-1">
+                            <h6 class="mb-1">${inspection.brand} ${inspection.model}</h6>
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-calendar3 me-1"></i>${formatDateIndo(inspection.inspection_date)}
+                                <span class="mx-2">•</span>
+                                <span class="badge bg-${statusClass}">${statusLabel}</span>
+                            </p>
+                        </div>
+                        <span class="text-muted small">${formatTimeAgo(inspection.created_at)}</span>
+                    </div>
+                `;
+            }).join('');
 
         } catch (error) {
             console.error('Error loading recent activity:', error);
+
+            const activityContainer = document.getElementById('recentActivity');
+            if (activityContainer) {
+                activityContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Gagal memuat aktivitas terbaru.
+                    </div>
+                `;
+            }
         }
     }
 
@@ -225,47 +290,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!container) return;
 
         try {
-            // Mock data for demo - replace with API call
-            // const data = await apiGet('/user/inspections');
+            // Load inspections from API
+            console.log('[Dashboard] Fetching inspections from API...');
+            const response = await apiGet('/inspections');
+            console.log('[Dashboard] API Response:', response);
 
-            const mockInspections = [
-                {
-                    id: 'INS-001',
-                    vehicle_type: 'mobil',
-                    brand: 'Honda',
-                    model: 'Jazz RS',
-                    year: 2021,
-                    mileage: 25000,
-                    condition: 'good',
-                    status: 'completed',
-                    inspection_date: '2025-01-15',
-                    inspection_time: '10:00-12:00',
-                    location: 'Jakarta Selatan, DKI Jakarta',
-                    inspector_name: 'Ahmad Suryadi',
-                    inspection_notes: 'Kondisi mesin baik, body original, tidak pernah banjir atau tabrakan.',
-                    overall_score: 85,
-                    created_at: '2025-01-10'
-                },
-                {
-                    id: 'INS-002',
-                    vehicle_type: 'mobil',
-                    brand: 'Toyota',
-                    model: 'Innova Reborn',
-                    year: 2020,
-                    mileage: 45000,
-                    condition: 'fair',
-                    status: 'in_progress',
-                    inspection_date: '2025-02-10',
-                    inspection_time: '13:00-15:00',
-                    location: 'Bandung, Jawa Barat',
-                    inspector_name: null,
-                    inspection_notes: null,
-                    overall_score: null,
-                    created_at: '2025-02-08'
-                }
-            ];
+            // Handle pagination response
+            const inspections = response.data?.data || [];
+            console.log('[Dashboard] Inspections count:', inspections.length);
+            console.log('[Dashboard] Inspections data:', inspections);
 
-            if (mockInspections.length === 0) {
+            if (inspections.length === 0) {
+                console.log('[Dashboard] No inspections found, showing empty state');
                 container.innerHTML = `
                     <div class="text-center text-muted py-5">
                         <i class="bi bi-clipboard-x fs-1"></i>
@@ -276,14 +312,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Store inspections globally for detail view
+            window.inspectionsData = inspections;
+            console.log('[Dashboard] Stored to window.inspectionsData:', window.inspectionsData);
+
             // Render inspection cards
-            container.innerHTML = mockInspections.map(inspection => createInspectionCard(inspection)).join('');
+            console.log('[Dashboard] Rendering inspection cards...');
+            container.innerHTML = inspections.map(inspection => createInspectionCard(inspection)).join('');
+            console.log('[Dashboard] Inspection cards rendered successfully');
 
             // Add click handlers
             container.querySelectorAll('.inspection-card-clickable').forEach(card => {
                 card.addEventListener('click', function() {
                     const inspectionId = this.getAttribute('data-id');
-                    showInspectionDetail(inspectionId, mockInspections);
+                    showInspectionDetail(inspectionId);
                 });
             });
 
@@ -313,11 +355,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const typeIcon = inspection.vehicle_type === 'mobil' ? 'bi-car-front' : 'bi-bicycle';
 
+        // Format location
+        const location = `${inspection.city}, ${inspection.province}`;
+
         return `
             <div class="inspection-card inspection-card-clickable" data-id="${inspection.id}" style="cursor: pointer;">
                 <div class="inspection-header">
                     <div>
-                        <span class="inspection-id">${inspection.id}</span>
+                        <span class="inspection-id">${inspection.order_code}</span>
                         <h6 class="inspection-vehicle mb-1">
                             <i class="bi ${typeIcon} me-1"></i>${inspection.brand} ${inspection.model}
                         </h6>
@@ -335,23 +380,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="inspection-detail">
                         <i class="bi bi-geo-alt"></i>
-                        <span>${inspection.location}</span>
+                        <span>${location}</span>
                     </div>
                 </div>
-                ${inspection.status === 'completed' ? `
-                    <div class="inspection-score mt-3">
-                    <span class="badge bg-success">
-                        <i class="bi bi-star-fill me-1"></i>Skor: ${inspection.overall_score}/100
-                    </span>
-                    <small class="text-muted ms-2">Klik untuk detail</small>
-                    </div>
-                ` : ''}
+                <div class="inspection-price mt-2">
+                    <small class="text-muted">Biaya:</small>
+                    <span class="fw-bold text-primary ms-1">Rp ${Number(inspection.price).toLocaleString('id-ID')}</span>
+                </div>
             </div>
         `;
     }
 
-    function showInspectionDetail(inspectionId, inspections) {
-        const inspection = inspections.find(i => i.id === inspectionId);
+    function showInspectionDetail(inspectionId) {
+        const inspection = window.inspectionsData.find(i => i.id == inspectionId);
         if (!inspection) return;
 
         const modal = document.getElementById('inspectionDetailModal');
@@ -377,10 +418,38 @@ document.addEventListener('DOMContentLoaded', function() {
             'poor': 'Kurang'
         };
 
+        // Format location
+        const location = `${inspection.city}, ${inspection.province}`;
+
         content.innerHTML = `
             <!-- Status Badge -->
             <div class="text-center mb-4">
                 <span class="badge bg-${statusClass} fs-6 px-4 py-2">${statusLabel}</span>
+            </div>
+
+            <!-- Order Info -->
+            <div class="detail-section mb-4">
+                <h6 class="detail-section-title">
+                    <i class="bi bi-receipt me-2"></i>Informasi Pesanan
+                </h6>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Kode Pesanan</span>
+                        <span class="detail-value fw-bold">${inspection.order_code}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Biaya</span>
+                        <span class="detail-value fw-bold text-primary">Rp ${Number(inspection.price).toLocaleString('id-ID')}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Status</span>
+                        <span class="detail-value"><span class="badge bg-${statusClass}">${statusLabel}</span></span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Dipesan pada</span>
+                        <span class="detail-value">${formatDateIndo(inspection.created_at)}</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Vehicle Info -->
@@ -389,10 +458,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="bi bi-car-front me-2"></i>Informasi Kendaraan
                 </h6>
                 <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Kode Pesanan</span>
-                        <span class="detail-value fw-bold">${inspection.id}</span>
-                    </div>
                     <div class="detail-item">
                         <span class="detail-label">Jenis</span>
                         <span class="detail-value">${inspection.vehicle_type === 'mobil' ? 'Mobil' : 'Motor'}</span>
@@ -407,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Kilometer</span>
-                        <span class="detail-value">${inspection.mileage.toLocaleString('id-ID')} km</span>
+                        <span class="detail-value">${Number(inspection.mileage).toLocaleString('id-ID')} km</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Kondisi</span>
@@ -415,6 +480,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
+
+            ${inspection.notes ? `
+                <!-- Notes -->
+                <div class="detail-section mb-4">
+                    <h6 class="detail-section-title">
+                        <i class="bi bi-card-text me-2"></i>Catatan Tambahan
+                    </h6>
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        ${inspection.notes || '-'}
+                    </div>
+                </div>
+            ` : ''}
 
             <!-- Schedule Info -->
             <div class="detail-section mb-4">
@@ -432,57 +510,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="detail-item full-width">
                         <span class="detail-label">Lokasi</span>
-                        <span class="detail-value">${inspection.location}</span>
+                        <span class="detail-value">${location}</span>
+                    </div>
+                    <div class="detail-item full-width">
+                        <span class="detail-label">Alamat Lengkap</span>
+                        <span class="detail-value">${inspection.address}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">No. Telepon</span>
+                        <span class="detail-value">${inspection.contact_phone}</span>
                     </div>
                 </div>
-            </div>
-
-            ${inspection.status === 'completed' && inspection.inspector_name ? `
-                <!-- Inspector Info -->
-                <div class="detail-section mb-4">
-                    <h6 class="detail-section-title">
-                        <i class="bi bi-person-check me-2"></i>Inspektor
-                    </h6>
-                    <div class="detail-grid">
-                        <div class="detail-item">
-                            <span class="detail-label">Nama</span>
-                            <span class="detail-value">${inspection.inspector_name}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Skor Total</span>
-                            <span class="detail-value fw-bold text-success">${inspection.overall_score}/100</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Inspection Notes -->
-                <div class="detail-section mb-4">
-                    <h6 class="detail-section-title">
-                        <i class="bi bi-clipboard-data me-2"></i>Hasil Inspeksi
-                    </h6>
-                    <div class="alert alert-info mb-0">
-                        <i class="bi bi-info-circle me-2"></i>
-                        ${inspection.inspection_notes || 'Tidak ada catatan.'}
-                    </div>
-                </div>
-            ` : ''}
-
-            <!-- Created At -->
-            <div class="text-muted text-center small mt-4">
-                <i class="bi bi-clock-history me-1"></i>
-                Dipesan pada: ${formatDateIndo(inspection.created_at)}
             </div>
         `;
 
-        // Show/hide download button based on status
+        // Hide download button (only for completed inspections with inspection data)
         if (downloadBtn) {
-            downloadBtn.style.display = inspection.status === 'completed' ? 'inline-block' : 'none';
-            if (inspection.status === 'completed') {
-                downloadBtn.onclick = function() {
-                    showToast('Mengunduh laporan inspeksi...', 'info');
-                    // Add download logic here
-                };
-            }
+            downloadBtn.style.display = 'none';
         }
 
         // Show modal
@@ -500,15 +544,27 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(dateString).toLocaleDateString('id-ID', options);
     }
 
+    function formatTimeAgo(dateString) {
+        const now = new Date();
+        const date = new Date(dateString);
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+
+        if (diffMins < 1) return 'Baru saja';
+        if (diffMins < 60) return `${diffMins} menit yang lalu`;
+        if (diffHours < 24) return `${diffHours} jam yang lalu`;
+        if (diffDays < 7) return `${diffDays} hari yang lalu`;
+        return formatDateIndo(dateString);
+    }
+
     async function loadMarketplace() {
         const container = document.getElementById('marketplaceList');
         if (!container) return;
 
         try {
-            // Mock data for now - replace with API call
-            // const data = await apiGet('/marketplace');
-
-            // Show empty state
+            // Show empty state for now
             container.innerHTML = `
                 <div class="col-12 text-center text-muted py-5">
                     <i class="bi bi-shop fs-1"></i>
@@ -542,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const location = document.getElementById('profileLocationInput').value;
 
                 try {
-                    // Mock API call - replace with actual API
+                    // TODO: Implement API call when backend is ready
                     // await apiPut('/user/profile', { phone, location });
 
                     showToast('Profil berhasil diperbarui!', 'success');
@@ -601,7 +657,13 @@ document.addEventListener('DOMContentLoaded', function() {
 // Redirect to login function (global)
 function logout() {
     if (confirm('Apakah Anda yakin ingin keluar?')) {
+        // Clear auth data
         clearAuth();
+
+        // Clear cached inspection data
+        delete window.inspectionsData;
+
+        // Redirect to login
         window.location.href = '../login.html';
     }
 }
