@@ -109,8 +109,11 @@ document.addEventListener("DOMContentLoaded", () => {
     setLoading(true);
 
     try {
-      // optional: bersihin auth lama
+      // Clear auth lama dan cache data
       window.clearAuth();
+
+      // Clear any cached inspection data
+      delete window.inspectionsData;
 
       const data = await window.apiPost("/auth/login", { email, password }, { auth: false });
 
