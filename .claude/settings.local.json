@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(podman compose up:*)",
+      "Bash(podman ps:*)",
+      "Bash(podman exec:*)",
+      "Bash(podman inspect:*)",
+      "Bash(podman compose down:*)",
+      "Bash(podman compose:*)",
+      "Bash(podman rm:*)",
+      "Bash(podman run:*)",
+      "Bash(cmd.exe /c \"podman exec:*)",
+      "Bash(curl:*)",
+      "Bash(podman stop:*)",
+      "Bash(podman restart:*)",
+      "Bash(node:*)"
+    ]
+  }
+}

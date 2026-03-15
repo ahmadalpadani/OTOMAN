@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Inspection extends Model
 {
@@ -13,6 +14,7 @@ class Inspection extends Model
         'brand',
         'model',
         'year',
+        'license_plate',
         'mileage',
         'condition',
         'notes',
@@ -24,9 +26,35 @@ class Inspection extends Model
         'contact_phone',
         'price',
         'status',
+        'payment_method',
+        'payment_proof_path',
+        'payment_status',
+        'mechanic_id',
+        'scheduled_date',
+        'scheduled_time',
+        'mechanic_notes',
+        'admin_notes',
     ];
 
     protected $casts = [
         'inspection_date' => 'date',
+        'scheduled_date' => 'date',
+        'scheduled_time' => 'datetime:H:i',
     ];
+
+    /**
+     * Get the user that owns the inspection.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the mechanic assigned to the inspection.
+     */
+    public function mechanic(): BelongsTo
+    {
+        return $this->belongsTo(Mechanic::class);
+    }
 }

@@ -112,6 +112,11 @@
                                 <div class="step-connector"></div>
                                 <div class="step" data-step="3">
                                     <div class="step-number">3</div>
+                                    <div class="step-label">Pembayaran</div>
+                                </div>
+                                <div class="step-connector"></div>
+                                <div class="step" data-step="4">
+                                    <div class="step-number">4</div>
                                     <div class="step-label">Konfirmasi</div>
                                 </div>
                             </div>
@@ -191,11 +196,53 @@
                                             <label for="vehicleYear" class="form-label">Tahun Produksi <span class="text-danger">*</span></label>
                                             <select class="form-select" id="vehicleYear" required>
                                                 <option value="">Pilih Tahun</option>
+                                                <option value="2026">2026</option>
+                                                <option value="2025">2025</option>
+                                                <option value="2024">2024</option>
+                                                <option value="2023">2023</option>
+                                                <option value="2022">2022</option>
+                                                <option value="2021">2021</option>
+                                                <option value="2020">2020</option>
+                                                <option value="2019">2019</option>
+                                                <option value="2018">2018</option>
+                                                <option value="2017">2017</option>
+                                                <option value="2016">2016</option>
+                                                <option value="2015">2015</option>
+                                                <option value="2014">2014</option>
+                                                <option value="2013">2013</option>
+                                                <option value="2012">2012</option>
+                                                <option value="2011">2011</option>
+                                                <option value="2010">2010</option>
+                                                <option value="2009">2009</option>
+                                                <option value="2008">2008</option>
+                                                <option value="2007">2007</option>
+                                                <option value="2006">2006</option>
+                                                <option value="2005">2005</option>
+                                                <option value="2004">2004</option>
+                                                <option value="2003">2003</option>
+                                                <option value="2002">2002</option>
+                                                <option value="2001">2001</option>
+                                                <option value="2000">2000</option>
+                                                <option value="1999">1999</option>
+                                                <option value="1998">1998</option>
+                                                <option value="1997">1997</option>
+                                                <option value="1996">1996</option>
+                                                <option value="1995">1995</option>
+                                                <option value="1994">1994</option>
+                                                <option value="1993">1993</option>
+                                                <option value="1992">1992</option>
+                                                <option value="1991">1991</option>
+                                                <option value="1990">1990</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-3">
                                             <label for="vehicleMileage" class="form-label">Kilometer (km) <span class="text-danger">*</span></label>
                                             <input type="number" class="form-control" id="vehicleMileage" placeholder="Contoh: 50000" min="0" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="licensePlate" class="form-label">Plat Nomor</label>
+                                            <input type="text" class="form-control" id="licensePlate" placeholder="Contoh: B 1234 ABC">
+                                            <small class="text-muted">Opsional</small>
                                         </div>
                                     </div>
 
@@ -316,8 +363,119 @@
                                     </div>
                                 </div>
 
-                                <!-- Step 3: Confirmation -->
+                                <!-- Step 3: Pembayaran -->
                                 <div class="form-step" id="step3">
+                                    <h6 class="section-title mb-4">
+                                        <i class="bi bi-credit-card me-2"></i>Pembayaran
+                                    </h6>
+
+                                    <!-- Payment Info Card -->
+                                    <div class="summary-card mb-4">
+                                        <h6 class="summary-title">Ringkasan Biaya</h6>
+
+                                        <div class="summary-section">
+                                            <div class="summary-item">
+                                                <span class="summary-label">Layanan:</span>
+                                                <span class="summary-value">Inspeksi Kendaraan Bekas</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Biaya Inspeksi:</span>
+                                                <span class="summary-value">Rp 350.000</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">PPN (11%):</span>
+                                                <span class="summary-value">Rp 38.500</span>
+                                            </div>
+                                            <hr>
+                                            <div class="summary-item total">
+                                                <span class="summary-label">Total Pembayaran:</span>
+                                                <span class="summary-value text-primary fw-bold fs-5" id="totalPayment">Rp 388.500</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment Method -->
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold">Metode Pembayaran</label>
+                                        <div class="p-3 border rounded bg-light">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-bank fs-4 me-3 text-primary"></i>
+                                                <div>
+                                                    <strong>Transfer Bank</strong>
+                                                    <small class="d-block text-muted">BCA, Mandiri, BRI</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="paymentMethod" value="bank_transfer">
+                                    </div>
+
+                                    <!-- Payment Account Info -->
+                                    <div class="alert alert-info mb-4">
+                                        <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>Informasi Rekening</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p class="mb-1"><strong>Bank BCA</strong></p>
+                                                <p class="mb-0 text-muted">No. Rek: 1234567890</p>
+                                                <p class="mb-0 text-muted">A/N: PT OTOMAN</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p class="mb-1"><strong>Bank Mandiri</strong></p>
+                                                <p class="mb-0 text-muted">No. Rek: 0987654321</p>
+                                                <p class="mb-0 text-muted">A/N: PT OTOMAN</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment Proof Upload -->
+                                    <div class="mb-4">
+                                        <label class="form-label fw-semibold">Upload Bukti Pembayaran <span class="text-danger">*</span></label>
+                                        <div class="upload-area" id="paymentProofUpload">
+                                            <input type="file" id="paymentProof" name="paymentProof" accept=".png,.jpg,.jpeg,.pdf" class="d-none" required>
+                                            <label for="paymentProof" class="upload-label">
+                                                <i class="bi bi-cloud-upload fs-1 text-muted mb-3"></i>
+                                                <p class="mb-1">Klik untuk upload bukti pembayaran</p>
+                                                <small class="text-muted">Format: PNG, JPG, JPEG, PDF (Max 2MB)</small>
+                                            </label>
+                                            <div id="paymentProofPreview" class="mt-3" style="display: none;">
+                                                <div class="d-flex align-items-center justify-content-between p-2 bg-white border rounded">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-file-earmark-check fs-4 text-success me-2"></i>
+                                                        <span id="paymentProofName" class="text-truncate" style="max-width: 200px;"></span>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePaymentProof()">
+                                                        <i class="bi bi-x"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="invalid-feedback" id="paymentProofError"></div>
+                                    </div>
+
+                                    <!-- Payment Instructions -->
+                                    <div class="alert alert-warning mb-4">
+                                        <h6 class="alert-heading"><i class="bi bi-exclamation-circle me-2"></i>Cara Pembayaran</h6>
+                                        <ol class="mb-0">
+                                            <li>Transfer biaya inspeksi ke salah satu rekening di atas</li>
+                                            <li>Upload bukti pembayaran pada form di atas</li>
+                                            <li>Klik <strong>"Bayar Sekarang"</strong> untuk memproses</li>
+                                            <li>Pesanan akan dibuat setelah pembayaran dikonfirmasi</li>
+                                        </ol>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-outline-secondary btn-prev-step" data-prev="2">
+                                            <i class="bi bi-arrow-left me-2"></i>
+                                            Kembali
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-next-step" data-next="4">
+                                            Bayar Sekarang
+                                            <i class="bi bi-credit-card ms-2"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Step 4: Confirmation -->
+                                <div class="form-step" id="step4">
                                     <h6 class="section-title mb-4">
                                         <i class="bi bi-check-circle me-2"></i>Konfirmasi Pemesanan
                                     </h6>
@@ -367,10 +525,20 @@
                                         </div>
 
                                         <div class="summary-section">
-                                            <h6 class="summary-section-title">Biaya</h6>
+                                            <h6 class="summary-section-title">Pembayaran</h6>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Metode:</span>
+                                                <span class="summary-value" id="summaryPaymentMethod">-</span>
+                                            </div>
+                                            <div class="summary-item">
+                                                <span class="summary-label">Bukti:</span>
+                                                <span class="summary-value">
+                                                    <a href="javascript:void(0)" onclick="viewPaymentProof()" class="text-decoration-none" id="summaryPaymentProof"></a>
+                                                </span>
+                                            </div>
                                             <div class="summary-item total">
-                                                <span class="summary-label">Total Inspeksi:</span>
-                                                <span class="summary-value text-primary fw-bold" id="summaryPrice">Rp 350.000</span>
+                                                <span class="summary-label">Total Dibayar:</span>
+                                                <span class="summary-value text-primary fw-bold" id="summaryPrice">Rp 388.500</span>
                                             </div>
                                         </div>
                                     </div>
@@ -385,13 +553,64 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between">
-                                        <button type="button" class="btn btn-outline-secondary btn-prev-step" data-prev="2">
+                                        <button type="button" class="btn btn-outline-secondary btn-prev-step" data-prev="3">
                                             <i class="bi bi-arrow-left me-2"></i>
                                             Kembali
                                         </button>
                                         <button type="submit" class="btn btn-success btn-submit">
                                             <i class="bi bi-check-circle me-2"></i>Konfirmasi Pesanan
                                         </button>
+                                    </div>
+                                </div>
+
+                                <!-- Mockup Payment Modal -->
+                                <div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-primary text-white">
+                                                <h5 class="modal-title" id="paymentModalLabel">
+                                                    <i class="bi bi-credit-card me-2"></i>Pembayaran
+                                                </h5>
+                                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-center">
+                                                <div id="paymentProcessing">
+                                                    <div class="mb-4">
+                                                        <div class="spinner-border text-primary mb-3" role="status">
+                                                            <span class="visually-hidden">Loading...</span>
+                                                        </div>
+                                                        <h5>Memproses Pembayaran...</h5>
+                                                        <p class="text-muted">Mohon tunggu, sedang menghubungkan ke payment gateway</p>
+                                                    </div>
+                                                </div>
+                                                <div id="paymentSuccess" style="display: none;">
+                                                    <div class="success-icon mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                                                        <i class="bi bi-check-circle-fill"></i>
+                                                    </div>
+                                                    <h5>Pembayaran Berhasil!</h5>
+                                                    <p class="text-muted">Pesanan Anda akan dibuat setelah pembayaran dikonfirmasi</p>
+                                                </div>
+                                                <div id="paymentFailed" style="display: none;">
+                                                    <div class="mb-4">
+                                                        <i class="bi bi-x-circle-fill text-danger" style="font-size: 3rem;"></i>
+                                                    </div>
+                                                    <h5>Pembayaran Gagal</h5>
+                                                    <p class="text-muted">Silakan coba lagi atau pilih metode pembayaran lain</p>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer" id="paymentActionsProcessing">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                            </div>
+                                            <div class="modal-footer" id="paymentActionsSuccess" style="display: none;">
+                                                <button type="button" class="btn btn-primary" id="confirmPaymentBtn">
+                                                    <i class="bi bi-check-lg me-2"></i>Lanjut
+                                                </button>
+                                            </div>
+                                            <div class="modal-footer" id="paymentActionsFailed" style="display: none;">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                                                <button type="button" class="btn btn-primary" onclick="retryPayment()">Coba Lagi</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 

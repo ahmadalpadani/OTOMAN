@@ -29,6 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = '../login.html';
             return;
         }
+
+        // Redirect admin to admin dashboard
+        if (user.role === 'admin') {
+            window.location.href = 'dashboard-admin.html';
+            return;
+        }
     }
 
     function initializeSidebar() {
