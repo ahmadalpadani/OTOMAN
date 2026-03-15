@@ -77,7 +77,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const userData = JSON.parse(user);
       const redirectUrl = userData.role === 'admin'
         ? 'dashboard/dashboard-admin.html'
-        : 'dashboard/dashboard.html';
+        : userData.role === 'inspector'
+          ? 'dashboard/dashboard-inspector.html'
+          : 'dashboard/dashboard.html';
       showToast("Anda sudah login. Mengalihkan...", "success");
       setTimeout(() => (window.location.href = redirectUrl), 700);
       return;
@@ -135,7 +137,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const userRole = data.user?.role || 'user';
       const redirectUrl = userRole === 'admin'
           ? 'dashboard/dashboard-admin.html'
-          : 'dashboard/dashboard.html';
+          : userRole === 'inspector'
+              ? 'dashboard/dashboard-inspector.html'
+              : 'dashboard/dashboard.html';
 
       showToast("Login berhasil! Mengalihkan...", "success");
       setTimeout(() => (window.location.href = redirectUrl), 900);

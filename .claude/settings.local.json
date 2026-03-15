@@ -13,7 +13,10 @@
       "Bash(curl:*)",
       "Bash(podman stop:*)",
       "Bash(podman restart:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(podman network:*)",
+      "Bash(podman build:*)",
+      "Bash(podman logs:*)"
     ]
   }
 }

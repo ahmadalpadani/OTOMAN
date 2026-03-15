@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penaksiran Harga Kendaraan - OTOMAN</title>
+    <meta name="description" content="Estimasi harga kendaraan bekas dengan teknologi machine learning">
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/price-estimation.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body class="price-estimation-page">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-car-front-fill me-2"></i>OTOMAN
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="inspection.html">Inspeksi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="price-estimation.html">Taksasi Harga</a>
+                    </li>
+                    <li class="nav-item" id="navLogin">
+                        <a class="nav-link" href="login.html">Masuk</a>
+                    </li>
+                    <li class="nav-item dropdown d-none" id="navUser">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <span id="userName">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="dashboard/dashboard.html">Dashboard</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Keluar</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content pt-5">
+        <div class="container py-4">
+            <!-- Header Section -->
+            <div class="text-center mb-5">
+                <h1 class="fw-bold text-primary">
+                    <i class="bi bi-calculator me-2"></i>Penaksiran Harga Kendaraan Bekas
+                </h1>
+                <p class="text-muted">Dapatkan estimasi harga kendaraan bekas Anda dengan teknologi machine learning</p>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <!-- Form Card -->
+                    <div class="card shadow-lg">
+                        <div class="card-body p-4">
+                            <form id="priceEstimationForm">
+                                <!-- Row 1: Brand & Model -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-car-front me-2"></i>Merek *
+                                        </label>
+                                        <select class="form-select form-select-lg" id="brand" required>
+                                            <option value="">-- Pilih Merek --</option>
+                                            <!-- Options will be populated from JS -->
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-car-front me-2"></i>Model *
+                                        </label>
+                                        <select class="form-select form-select-lg" id="model" required disabled>
+                                            <option value="">-- Pilih Merek Dulu --</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Row 2: Year & Mileage -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-calendar me-2"></i>Tahun Produksi *
+                                        </label>
+                                        <select class="form-select form-select-lg" id="modelYear" required>
+                                            <option value="">-- Pilih Tahun --</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-speedometer me-2"></i>Jarak Tempuh (KM) *
+                                        </label>
+                                        <input type="number" class="form-control form-control-lg" id="milage"
+                                               placeholder="Contoh: 50000" min="0" required>
+                                    </div>
+                                </div>
+
+                                <!-- Row 3: Fuel Type & Engine -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-fuel-pump me-2"></i>Jenis Bahan Bakar *
+                                        </label>
+                                        <select class="form-select form-select-lg" id="fuelType" required>
+                                            <option value="">-- Pilih Jenis --</option>
+                                            <option value="Gasoline">Bensin (Gasoline)</option>
+                                            <option value="Diesel">Diesel</option>
+                                            <option value="Electric">Listrik (Electric)</option>
+                                            <option value="Hybrid">Hybrid</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-gear me-2"></i>Spesifikasi Mesin
+                                        </label>
+                                        <input type="text" class="form-control form-control-lg" id="engine"
+                                               placeholder="Contoh: 2.0L 4 cylinder">
+                                    </div>
+                                </div>
+
+                                <!-- Row 4: Transmission -->
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-gear-wide me-2"></i>Tipe Transmissi *
+                                        </label>
+                                        <div class="d-flex gap-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="transmission" id="transAuto" value="Automatic" required>
+                                                <label class="form-check-label" for="transAuto">
+                                                    <i class="bi bi-gear-auto me-1"></i>Automatic
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="transmission" id="transManual" value="Manual">
+                                                <label class="form-check-label" for="transManual">
+                                                    <i class="bi bi-gear me-1"></i>Manual
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="transmission" id="transOther" value="Other">
+                                                <label class="form-check-label" for="transOther">
+                                                    <i class="bi bi-gear-wide-connected me-1"></i>Lainnya
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Row 5: Colors -->
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-palette me-2"></i>Warna Exterior
+                                        </label>
+                                        <select class="form-select form-select-lg" id="extCol">
+                                            <option value="">-- Pilih Warna --</option>
+                                            <option value="Black">Hitam</option>
+                                            <option value="White">Putih</option>
+                                            <option value="Silver">Silver</option>
+                                            <option value="Gray">Abu-abu</option>
+                                            <option value="Red">Merah</option>
+                                            <option value="Blue">Biru</option>
+                                            <option value="Brown">Coklat</option>
+                                            <option value="Green">Hijau</option>
+                                            <option value="Orange">Orange</option>
+                                            <option value="Yellow">Kuning</option>
+                                            <option value="Other">Lainnya</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-palette-fill me-2"></i>Warna Interior
+                                        </label>
+                                        <select class="form-select form-select-lg" id="intCol">
+                                            <option value="">-- Pilih Warna --</option>
+                                            <option value="Black">Hitam</option>
+                                            <option value="White">Putih</option>
+                                            <option value="Gray">Abu-abu</option>
+                                            <option value="Beige">Beige</option>
+                                            <option value="Brown">Coklat</option>
+                                            <option value="Red">Merah</option>
+                                            <option value="Blue">Biru</option>
+                                            <option value="Other">Lainnya</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Row 6: Accident & Clean Title -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-exclamation-triangle me-2"></i>Riwayat Kecelakaan
+                                        </label>
+                                        <div class="d-flex gap-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="accident" id="accidentNo" value="No" required>
+                                                <label class="form-check-label" for="accidentNo">Tidak</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="accident" id="accidentYes" value="Yes">
+                                                <label class="form-check-label" for="accidentYes">Ya</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">
+                                            <i class="bi bi-file-earmark-check me-2"></i>Clean Title
+                                        </label>
+                                        <div class="d-flex gap-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="cleanTitle" id="cleanYes" value="Yes" required>
+                                                <label class="form-check-label" for="cleanYes">Ya</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="cleanTitle" id="cleanNo" value="No">
+                                                <label class="form-check-label" for="cleanNo">Tidak</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-primary btn-lg px-5" id="estimateBtn">
+                                        <i class="bi bi-calculator me-2"></i>Taksir Harga
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Section (Hidden initially) -->
+            <div class="row justify-content-center mt-4 d-none" id="resultSection">
+                <div class="col-lg-10">
+                    <div class="card shadow-lg border-primary">
+                        <div class="card-header bg-primary text-white py-3">
+                            <h4 class="mb-0 text-center">
+                                <i class="bi bi-cash-stack me-2"></i>Hasil Estimasi Harga
+                            </h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Vehicle Summary -->
+                            <div class="vehicle-summary mb-4 p-3 bg-light rounded">
+                                <h5 class="fw-bold" id="resultVehicle"></h5>
+                                <p class="text-muted mb-0" id="resultSpecs"></p>
+                            </div>
+
+                            <!-- Price Cards -->
+                            <div class="row text-center">
+                                <div class="col-md-4 mb-3">
+                                    <div class="price-card bg-light p-4 rounded">
+                                        <h6 class="text-muted">Harga Terendah</h6>
+                                        <p class="price-low fs-3 fw-bold text-secondary" id="priceLow">-</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="price-card bg-primary bg-gradient text-white p-4 rounded">
+                                        <h6>Harga Wajar</h6>
+                                        <p class="price-recommend fs-2 fw-bold" id="priceMid">-</p>
+                                        <span class="badge bg-light text-primary">Rekomendasi</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <div class="price-card bg-light p-4 rounded">
+                                        <h6 class="text-muted">Harga Tertinggi</h6>
+                                        <p class="price-high fs-3 fw-bold text-secondary" id="priceHigh">-</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Note -->
+                            <div class="alert alert-info mt-3">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Catatan:</strong> Harga ini adalah estimasi berdasarkan data pasar kendaraan bekas. Harga aktual dapat berbeda tergantung kondisi kendaraan dan lokasi.
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="text-center mt-4">
+                                <button class="btn btn-outline-primary me-2" onclick="resetForm()">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Coba Lagi
+                                </button>
+                                <a href="inspection.html" class="btn btn-success">
+                                    <i class="bi bi-clipboard-check me-1"></i>Booking Inspeksi
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2026 OTOMAN. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-none" id="loadingOverlay">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3 text-white">Menghitung estimasi harga...</p>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="js/bootstrap.bundle.min.js"></script>
+
+    <!-- API JS -->
+    <script src="js/api.js"></script>
+
+    <!-- Price Estimation JS -->
+    <script src="js/price-estimation.js"></script>
+
+</body>
+</html>
