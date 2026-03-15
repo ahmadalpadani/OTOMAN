@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Inspector - OTOMAN</title>
+    <meta name="description" content="Dashboard Inspector OTOMAN">
+
+    <!-- Bootstrap CSS -->
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link href="css/dashboard.css" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+</head>
+<body>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="navbar-brand fw-bold text-white">
+                    <i class="bi bi-car-front-fill me-2"></i>OTOMAN
+                </a>
+                <span class="badge bg-info ms-2">INSPECTOR</span>
+                <button class="btn-close btn-close-white d-lg-none ms-auto" id="sidebarClose"></button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#assigned" data-section="assigned">
+                            <i class="bi bi-clipboard-check"></i>
+                            <span>Inspeksi Assigned</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#history" data-section="history">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Riwayat</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info d-flex align-items-center">
+                    <div class="user-avatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="user-details">
+                        <p class="user-name mb-0" id="inspectorName">Inspector</p>
+                        <p class="user-email mb-0" id="inspectorEmailDisplay">inspector@otoman.com</p>
+                    </div>
+                </div>
+                <button class="btn btn-outline-light w-100 mt-3" onclick="logout()">
+                    <i class="bi bi-box-arrow-right me-2"></i>Keluar
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <button class="btn btn-outline-secondary d-lg-none" id="sidebarToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="page-title">
+                    <h4 class="mb-0" id="pageTitle">Dashboard Inspector</h4>
+                </div>
+                <div class="top-bar-actions">
+                    <span class="badge bg-success me-3" id="currentDate">
+                        <i class="bi bi-calendar3 me-1"></i>
+                    </span>
+                </div>
+            </header>
+
+            <!-- Content Sections -->
+            <div class="content-wrapper">
+
+                <!-- Assigned Inspections Section -->
+                <section id="assigned-section" class="content-section active">
+                    <div class="row g-4 mb-4">
+                        <!-- Stats Cards -->
+                        <div class="col-md-4">
+                            <div class="stat-card bg-primary bg-gradient">
+                                <div class="stat-icon">
+                                    <i class="bi bi-clipboard-plus"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <h6 class="stat-label">Assigned</h6>
+                                    <h3 class="stat-value" id="assignedCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card bg-warning bg-gradient">
+                                <div class="stat-icon">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <h6 class="stat-label">On Progress</h6>
+                                    <h3 class="stat-value" id="progressCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card bg-success bg-gradient">
+                                <div class="stat-icon">
+                                    <i class="bi bi-check-circle"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <h6 class="stat-label">Completed</h6>
+                                    <h3 class="stat-value" id="completedCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- List of Assigned Inspections -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-clipboard-data me-2"></i>Daftar Inspeksi Assigned
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <select class="form-select form-select-sm" id="assignedStatusFilter" style="width: auto;">
+                                    <option value="">Semua Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="in_progress">Sedang Dikerjakan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="assignedTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Kode</th>
+                                            <th>Customer</th>
+                                            <th>Kendaraan</th>
+                                            <th>Lokasi</th>
+                                            <th>Jadwal</th>
+                                            <th>Status</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="assignedBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-4">
+                                                <i class="bi bi-inbox fs-1"></i>
+                                                <p class="mt-2">Memuat data...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <nav>
+                                <ul class="pagination justify-content-center" id="assignedPagination">
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- History Section -->
+                <section id="history-section" class="content-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-clock-history me-2"></i>Riwayat Inspeksi
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="historyTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Kode</th>
+                                            <th>Customer</th>
+                                            <th>Kendaraan</th>
+                                            <th>Tanggal</th>
+                                            <th>Hasil</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="historyBody">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">
+                                                <i class="bi bi-inbox fs-1"></i>
+                                                <p class="mt-2">Memuat data...</p>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <nav>
+                                <ul class="pagination justify-content-center" id="historyPagination">
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Inspection Detail Modal -->
+    <div class="modal fade" id="inspectionDetailModal" tabindex="-1" aria-labelledby="inspectionDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="inspectionDetailModalLabel">
+                        <i class="bi bi-clipboard-check me-2"></i>Detail Inspeksi
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="inspectionDetailContent">
+                        <!-- Content will be loaded dynamically -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-success" id="markDoneBtn" style="display: none;">
+                        <i class="bi bi-check-lg me-2"></i>Tandai Selesai & Isi Hasil
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Inspection Modal -->
+    <div class="modal fade" id="completeInspectionModal" tabindex="-1" aria-labelledby="completeInspectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="completeInspectionModalLabel">
+                        <i class="bi bi-check-circle me-2"></i>Selesai Inspeksi
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="completeInspectionForm">
+                        <input type="hidden" id="completeInspectionId">
+                        <div class="mb-3">
+                            <label class="form-label">Hasil Inspeksi</label>
+                            <select class="form-select" id="inspectionResult" required>
+                                <option value="">-- Pilih Hasil --</option>
+                                <option value="approve">Approve - Mobil layak beli</option>
+                                <option value="pending">Pending - Perlu pengecekan lanjut</option>
+                                <option value="reject">Reject - Tidak layak</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kondisi Body</label>
+                            <select class="form-select" id="bodyCondition" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="excellent">Sangat Baik</option>
+                                <option value="good">Baik</option>
+                                <option value="fair">Cukup</option>
+                                <option value="poor">Kurang</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kondisi Mesin</label>
+                            <select class="form-select" id="engineCondition" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="excellent">Sangat Baik</option>
+                                <option value="good">Baik</option>
+                                <option value="fair">Cukup</option>
+                                <option value="poor">Kurang</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Kondisi Interior</label>
+                            <select class="form-select" id="interiorCondition" required>
+                                <option value="">-- Pilih --</option>
+                                <option value="excellent">Sangat Baik</option>
+                                <option value="good">Baik</option>
+                                <option value="fair">Cukup</option>
+                                <option value="poor">Kurang</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Catatan / Kesimpulan</label>
+                            <textarea class="form-control" id="inspectionNotes" rows="4" placeholder="Tuliskan catatan hasil inspeksi..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-success" id="saveCompleteBtn">
+                        <i class="bi bi-check-lg me-2"></i>Simpan & Selesai
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="../js/bootstrap.bundle.min.js"></script>
+
+    <!-- API JS -->
+    <script src="../js/api.js"></script>
+
+    <!-- Dashboard Inspector JS -->
+    <script src="js/dashboard-inspector.js"></script>
+
+</body>
+</html>
