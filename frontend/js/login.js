@@ -1,4 +1,4 @@
-// login.js (fixed)
+// login.js
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- guard: pastikan api.js expose function ---
@@ -64,12 +64,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- auto redirect kalau sudah login ---
-  const token = localStorage.getItem("otoman_token");
-  const user = localStorage.getItem("otoman_user");
-  if (token && user) {
-    showToast("Anda sudah login. Mengalihkan...", "success");
-    setTimeout(() => (window.location.href = "dashboard/dashboard.html"), 700);
-    return;
+  // Cek apakah baru saja logout (dalam 5 detik terakhir)
+  const logoutTime = localStorage.getItem('logout_time');
+  const now = Date.now();
+  if (logoutTime && (now - parseInt(logoutTime)) < 5000) {
+    // Baru logout, hapus flag dan biarkan di halaman login
+    localStorage.removeItem('logout_time');
+  } else {
+    const token = localStorage.getItem("otoman_token");
+    const user = localStorage.getItem("otoman_user");
+    if (token && user) {
+      const userData = JSON.parse(user);
+      const redirectUrl = userData.role === 'admin'
+        ? 'dashboard/dashboard-admin.html'
+        : 'dashboard/dashboard.html';
+      showToast("Anda sudah login. Mengalihkan...", "success");
+      setTimeout(() => (window.location.href = redirectUrl), 700);
+      return;
+    }
   }
 
   // clear validation on input
@@ -119,8 +131,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       window.saveAuth(data);
 
+      // Redirect based on role
+      const userRole = data.user?.role || 'user';
+      const redirectUrl = userRole === 'admin'
+          ? 'dashboard/dashboard-admin.html'
+          : 'dashboard/dashboard.html';
+
       showToast("Login berhasil! Mengalihkan...", "success");
-      setTimeout(() => (window.location.href = "dashboard/dashboard.html"), 900);
+      setTimeout(() => (window.location.href = redirectUrl), 900);
     } catch (err) {
       console.error("Login error:", err);
       showToast(err?.message || "Email atau password salah!");
