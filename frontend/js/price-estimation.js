@@ -240,20 +240,20 @@ function displayResult(data, result) {
 }
 
 // Format currency
-function formatCurrency(amount, currency = 'USD') {
+function formatCurrency(amount, currency = 'IDR') {
     const numericAmount = Number(amount || 0);
 
-    if (currency === 'USD') {
-        return new Intl.NumberFormat('en-US', {
+    if (currency === 'IDR') {
+        return new Intl.NumberFormat('id-ID', {
             style: 'currency',
-            currency: 'USD',
+            currency: 'IDR',
             maximumFractionDigits: 0
         }).format(numericAmount);
     }
 
-    return new Intl.NumberFormat('id-ID', {
+    return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: 'IDR',
+        currency: 'USD',
         maximumFractionDigits: 0
     }).format(numericAmount);
 }
