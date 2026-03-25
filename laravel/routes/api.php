@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InspectionController;
+use App\Http\Controllers\Api\CarPriceController;
+
 
 // ---------------- AUTH ----------------
 Route::prefix('auth')->group(function () {
@@ -26,3 +28,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::options('{any}', function () {
     return response()->json([], 204);
 })->where('any', '.*');
+
+// ---------------- PRICE PREDICTIONS ----------------
+
+Route::post('/car-price/predict', [CarPriceController::class, 'predict']);

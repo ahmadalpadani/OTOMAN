@@ -1,0 +1,14 @@
+{
+  "features": [
+    "brand",
+    "model",
+    "model_year",
+    "milage",
+    "fuel_type",
+    "transmission",
+    "accident",
+    "clean_title"
+  ],
+  "mae": 17262.440518663196,
+  "r2": 0.030419704810779935
+}

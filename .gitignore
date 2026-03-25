@@ -15,3 +15,7 @@ Thumbs.db
 *.swp
 *.swo
 .claude/
+
+ml-service/__pycache__/
+ml-service/venv/
+
