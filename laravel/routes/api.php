@@ -31,4 +31,5 @@ Route::options('{any}', function () {
 
 // ---------------- PRICE PREDICTIONS ----------------
 
+Route::get('/car-price/form-options', [CarPriceController::class, 'formOptions']);
 Route::post('/car-price/predict', [CarPriceController::class, 'predict']);
