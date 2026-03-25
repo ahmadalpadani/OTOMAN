@@ -18,4 +18,5 @@ Thumbs.db
 
 ml-service/__pycache__/
 ml-service/venv/
-
+ml-service/model/
+*.joblib
