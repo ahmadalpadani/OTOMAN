@@ -12,10 +12,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // CORS (sudah benar)
         $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
 
+        // 🔥 REGISTER MIDDLEWARE DI SINI
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+
+            // TAMBAHAN KITA 👇
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
     })
 

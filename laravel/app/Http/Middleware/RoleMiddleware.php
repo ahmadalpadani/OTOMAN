@@ -5,15 +5,15 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 
-class AdminMiddleware
+class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next, ...$roles)
     {
         $user = $request->user();
 
-        if (!$user || $user->role !== 'admin') {
+        if (!$user || !in_array($user->role, $roles)) {
             return response()->json([
-                'message' => 'Unauthorized - Admin only'
+                'message' => 'Unauthorized - Invalid role'
             ], 403);
         }
 
