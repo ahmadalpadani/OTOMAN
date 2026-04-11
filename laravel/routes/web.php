@@ -16,3 +16,7 @@ Route::middleware(['auth', 'admin'])->get('/admin/dashboard', function () {
 Route::get('/admin/test', function () {
     return 'ADMIN ACCESS OK';
 })->middleware(['auth', 'admin']);
+
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok']);
+});
