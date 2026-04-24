@@ -34,12 +34,19 @@ class Inspection extends Model
         'scheduled_time',
         'mechanic_notes',
         'admin_notes',
+        'result',
+        'body_condition',
+        'engine_condition',
+        'interior_condition',
+        'result_notes',
+        'completed_at',
+        'vehicle_images',
     ];
 
     protected $casts = [
-        'inspection_date' => 'date',
-        'scheduled_date' => 'date',
-        'scheduled_time' => 'datetime:H:i',
+        'inspection_date' => 'datetime:Y-m-d',
+        'scheduled_date' => 'datetime:Y-m-d',
+        'completed_at' => 'datetime',
     ];
 
     /**
@@ -51,10 +58,10 @@ class Inspection extends Model
     }
 
     /**
-     * Get the mechanic assigned to the inspection.
+     * Get the mechanic (inspector) assigned to the inspection.
      */
     public function mechanic(): BelongsTo
     {
-        return $this->belongsTo(Mechanic::class);
+        return $this->belongsTo(User::class, 'mechanic_id');
     }
 }

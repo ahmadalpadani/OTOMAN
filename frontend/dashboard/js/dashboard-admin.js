@@ -3,14 +3,15 @@
 
 // Helper functions from api.js
 function getApiUrl() {
-    if (typeof window !== 'undefined' && window.API_BASE) {
-        return window.API_BASE;
+    // api.js exposes window.API_BASE_RESOLVED (not window.API_BASE)
+    if (typeof window !== 'undefined' && window.API_BASE_RESOLVED) {
+        return window.API_BASE_RESOLVED;
     }
     return 'http://localhost:8000/api';
 }
 
 function getHeaders() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('otoman_token');
     const headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -22,6 +23,8 @@ function getHeaders() {
 }
 
 const API_BASE_URL = getApiUrl();
+// NOTE: window.API_BASE is exposed by api.js (const). Do NOT redeclare it.
+// Use API_BASE_URL for all fetch calls.
 
 // State
 let currentPage = {
@@ -32,8 +35,8 @@ let inspectionStatusChart = null;
 let inspectionMonthlyChart = null;
 
 // Initialize
-document.addEventListener('DOMContentLoaded', function() {
-    checkAuth();
+document.addEventListener('DOMContentLoaded', async function() {
+    await checkAuth();
     initSidebar();
     loadDashboardData();
     setCurrentDate();
@@ -54,24 +57,39 @@ function handleHashNavigation() {
 }
 
 // Check authentication
-function checkAuth() {
+async function checkAuth() {
     const token = localStorage.getItem('otoman_token');
-    const user = JSON.parse(localStorage.getItem('otoman_user') || '{}');
 
     if (!token) {
-        window.location.href = '../login.html';
+        redirectLogin();
         return;
     }
 
-    if (user.role !== 'admin') {
-        // Redirect to user dashboard if not admin
-        window.location.href = 'dashboard.html';
-        return;
+    // Verify token still valid with server
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/json' }
+        });
+        if (!res.ok) throw new Error('Invalid token');
+        const data = await res.json();
+        // Response is { user: {...} }, not { data: { role: ... } }
+        if (data.user?.role !== 'admin') {
+            localStorage.removeItem('otoman_token');
+            localStorage.removeItem('otoman_user');
+            redirectLogin();
+            return;
+        }
+        document.getElementById('adminName').textContent = data.user.name || 'Admin';
+        document.getElementById('adminEmailDisplay').textContent = data.user.email || 'admin@otoman.com';
+    } catch {
+        localStorage.removeItem('otoman_token');
+        localStorage.removeItem('otoman_user');
+        redirectLogin();
     }
+}
 
-    // Set admin info
-    document.getElementById('adminName').textContent = user.name || 'Admin';
-    document.getElementById('adminEmailDisplay').textContent = user.email || 'admin@otoman.com';
+function redirectLogin() {
+    window.location.href = '../login.html';
 }
 
 // Set current date
@@ -98,6 +116,10 @@ function initSidebar() {
             // Show corresponding section
             contentSections.forEach(sec => sec.classList.remove('active'));
             document.getElementById(`${section}-section`).classList.add('active');
+
+            // Load section data
+            if (section === 'inspections') loadAllInspections(1);
+            if (section === 'marketplace') loadMarketplaceListings();
 
             // Update page title
             const pageTitle = this.querySelector('span').textContent;
@@ -147,27 +169,6 @@ async function loadDashboardData() {
 
 // Load statistics
 async function loadStats() {
-    // MOCK DATA - Sesuai format response di neededendpoint.md
-    const mockStats = {
-        total_users: 12,
-        total_inspections: 48,
-        pending_inspections: 8,
-        completed_inspections: 35,
-        status_breakdown: {
-            pending: 8,
-            in_progress: 5,
-            completed: 35,
-            rejected: 0
-        },
-        monthly_inspections: {
-            'Jan': 5,
-            'Feb': 12,
-            'Mar': 15,
-            'Apr': 8,
-            'Mei': 8
-        }
-    };
-
     try {
         const response = await fetch(`${API_BASE_URL}/admin/stats`, {
             headers: getHeaders()
@@ -178,33 +179,20 @@ async function loadStats() {
         const data = await response.json();
         updateStatsUI(data);
     } catch (error) {
-        console.log('Using mock data for stats');
-        updateStatsUI(mockStats);
+        console.error('Failed to load stats:', error);
+        showToast('Gagal memuat statistik', 'danger');
     }
 }
 
 function updateStatsUI(data) {
-    document.getElementById('totalUsers').textContent = data.total_users || 0;
-    document.getElementById('totalInspections').textContent = data.total_inspections || 0;
-    document.getElementById('pendingInspections').textContent = data.pending_inspections || 0;
-    document.getElementById('completedInspections').textContent = data.completed_inspections || 0;
-
-    // Update charts
-    updateStatusChart(data.status_breakdown || {});
-    updateMonthlyChart(data.monthly_inspections || {});
+    document.getElementById('totalUsers').textContent = data?.total_users || 0;
+    document.getElementById('totalInspections').textContent = data?.total_inspections || 0;
+    document.getElementById('pendingInspections').textContent = data?.pending_inspections || 0;
+    document.getElementById('completedInspections').textContent = data?.completed_inspections || 0;
 }
 
 // Load recent inspections
 async function loadRecentInspections() {
-    // MOCK DATA - Dengan payment dan mechanic
-    const mockInspections = [
-        { id: 1, user: { id: 1, name: 'Ahmad Wijaya' }, vehicle_brand: 'Toyota', vehicle_model: 'Avanza', vehicle_year: '2021', license_plate: 'B 1234 ABC', location: 'DKI Jakarta, Jakarta Selatan', inspection_date: '2026-03-05', status: 'pending', payment_status: 'paid', mechanic_id: null, created_at: '2026-03-01 10:30:00' },
-        { id: 2, user: { id: 2, name: 'Siti Nurhaliza' }, vehicle_brand: 'Honda', vehicle_model: 'Civic', vehicle_year: '2020', license_plate: 'D 5678 DEF', location: 'Jawa Barat, Bandung', inspection_date: '2026-03-04', status: 'in_progress', payment_status: 'paid', mechanic_id: 1, mechanic_name: 'Budi Teknisi', created_at: '2026-03-01 11:45:00' },
-        { id: 3, user: { id: 3, name: 'Budi Santoso' }, vehicle_brand: 'Suzuki', vehicle_model: 'Ertiga', vehicle_year: '2022', license_plate: 'F 9012 GHI', location: 'Jawa Timur, Surabaya', inspection_date: '2026-03-03', status: 'completed', payment_status: 'paid', mechanic_id: 2, mechanic_name: 'Joko Mechanic', created_at: '2026-02-28 09:15:00' },
-        { id: 4, user: { id: 4, name: 'Dewi Lestari' }, vehicle_brand: 'Nissan', vehicle_model: 'Livina', vehicle_year: '2019', license_plate: 'G 3456 JKL', location: 'Sumatera Utara, Medan', inspection_date: '2026-03-02', status: 'pending', payment_status: 'paid', mechanic_id: null, created_at: '2026-02-28 14:20:00' },
-        { id: 5, user: { id: 5, name: 'Rudi Hermawan' }, vehicle_brand: 'Toyota', vehicle_model: 'Fortuner', vehicle_year: '2021', license_plate: 'H 7890 MNO', location: 'DKI Jakarta, Jakarta Barat', inspection_date: '2026-03-01', status: 'completed', payment_status: 'paid', mechanic_id: 3, mechanic_name: 'Asep Service', created_at: '2026-02-27 16:00:00' },
-    ];
-
     try {
         const response = await fetch(`${API_BASE_URL}/admin/inspections?limit=5`, {
             headers: getHeaders()
@@ -215,8 +203,8 @@ async function loadRecentInspections() {
         const data = await response.json();
         renderRecentInspections(data.inspections || []);
     } catch (error) {
-        console.log('Using mock data for inspections');
-        renderRecentInspections(mockInspections);
+        console.error('Failed to load recent inspections:', error);
+        renderRecentInspections([]);
     }
 }
 
@@ -236,20 +224,29 @@ function renderRecentInspections(inspections) {
         return;
     }
 
-    tbody.innerHTML = inspections.map(insp => `
+    tbody.innerHTML = inspections.map(insp => {
+        const isPending = insp.status === 'pending';
+        const actionBtn = isPending
+            ? `<button class="btn btn-sm btn-primary" onclick="openAssignInspector(${insp.id})" title="Assign Inspector">
+                 <i class="bi bi-person-plus"></i>
+               </button>
+               <button class="btn btn-sm btn-outline-primary" onclick="viewInspection(${insp.id})" title="Lihat Detail">
+                 <i class="bi bi-eye"></i>
+               </button>`
+            : `<button class="btn btn-sm btn-outline-primary" onclick="viewInspection(${insp.id})" title="Lihat Detail">
+                 <i class="bi bi-eye"></i>
+               </button>`;
+
+        return `
         <tr>
             <td>#${insp.id}</td>
             <td>${insp.user?.name || '-'}</td>
             <td>${insp.vehicle_brand} ${insp.vehicle_model}</td>
             <td>${formatDate(insp.inspection_date)}</td>
             <td>${getStatusBadge(insp.status)}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary" onclick="viewInspection(${insp.id})">
-                    <i class="bi bi-eye"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+            <td>${actionBtn}</td>
+        </tr>`;
+    }).join('');
 }
 
 // Load all inspections (with pagination)
@@ -258,42 +255,6 @@ async function loadAllInspections(page = 1) {
 
     const status = document.getElementById('inspectionStatusFilter').value;
     const search = document.getElementById('inspectionSearch').value;
-
-    // MOCK DATA - Dengan payment details dan mechanic assignment
-    const mockInspectionsAll = [
-        { id: 1, user: { id: 1, name: 'Ahmad Wijaya' }, vehicle_brand: 'Toyota', vehicle_model: 'Avanza', vehicle_year: '2021', license_plate: 'B 1234 ABC', location: 'DKI Jakarta, Jakarta Selatan', inspection_date: '2026-03-05', status: 'pending', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: null, created_at: '2026-03-01 10:30:00' },
-        { id: 2, user: { id: 2, name: 'Siti Nurhaliza' }, vehicle_brand: 'Honda', vehicle_model: 'Civic', vehicle_year: '2020', license_plate: 'D 5678 DEF', location: 'Jawa Barat, Bandung', inspection_date: '2026-03-04', status: 'in_progress', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: 1, mechanic_name: 'Budi Teknisi', scheduled_date: '2026-03-04', scheduled_time: '09:00-11:00', created_at: '2026-03-01 11:45:00' },
-        { id: 3, user: { id: 3, name: 'Budi Santoso' }, vehicle_brand: 'Suzuki', vehicle_model: 'Ertiga', vehicle_year: '2022', license_plate: 'F 9012 GHI', location: 'Jawa Timur, Surabaya', inspection_date: '2026-03-03', status: 'completed', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: 2, mechanic_name: 'Joko Mechanic', scheduled_date: '2026-03-03', scheduled_time: '10:00-12:00', created_at: '2026-02-28 09:15:00' },
-        { id: 4, user: { id: 4, name: 'Dewi Lestari' }, vehicle_brand: 'Nissan', vehicle_model: 'Livina', vehicle_year: '2019', license_plate: 'G 3456 JKL', location: 'Sumatera Utara, Medan', inspection_date: '2026-03-02', status: 'pending', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: null, created_at: '2026-02-28 14:20:00' },
-        { id: 5, user: { id: 5, name: 'Rudi Hermawan' }, vehicle_brand: 'Toyota', vehicle_model: 'Fortuner', vehicle_year: '2021', license_plate: 'H 7890 MNO', location: 'DKI Jakarta, Jakarta Barat', inspection_date: '2026-03-01', status: 'completed', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: 3, mechanic_name: 'Asep Service', scheduled_date: '2026-03-01', scheduled_time: '14:00-16:00', created_at: '2026-02-27 16:00:00' },
-        { id: 6, user: { id: 6, name: 'Indra Gunawan' }, vehicle_brand: 'Mitsubishi', vehicle_model: 'Pajero Sport', vehicle_year: '2020', license_plate: 'B 1111 AAA', location: 'Jawa Barat, Bekasi', inspection_date: '2026-02-28', status: 'rejected', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: null, admin_notes: 'Kendaraan tidak memenuhi kriteria inspection', created_at: '2026-02-26 10:30:00' },
-        { id: 7, user: { id: 7, name: 'Maya Sari' }, vehicle_brand: 'Hyundai', vehicle_model: 'Stargazer', vehicle_year: '2023', license_plate: 'D 2222 BBB', location: 'Jawa Timur, Sidoarjo', inspection_date: '2026-02-27', status: 'completed', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: 2, mechanic_name: 'Joko Mechanic', scheduled_date: '2026-02-27', scheduled_time: '09:00-11:00', created_at: '2026-02-25 13:45:00' },
-        { id: 8, user: { id: 8, name: 'Hendra Wijaya' }, vehicle_brand: 'Wuling', vehicle_model: 'Almaz', vehicle_year: '2022', license_plate: 'F 3333 CCC', location: 'DKI Jakarta, Jakarta Timur', inspection_date: '2026-02-26', status: 'in_progress', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: 4, mechanic_name: 'Dedi Inspector', scheduled_date: '2026-02-26', scheduled_time: '11:00-13:00', created_at: '2026-02-24 09:00:00' },
-        { id: 9, user: { id: 9, name: 'Rina Susilowati' }, vehicle_brand: 'Kia', vehicle_model: 'Sonet', vehicle_year: '2023', license_plate: 'G 4444 DDD', location: 'Jawa Tengah, Semarang', inspection_date: '2026-02-25', status: 'pending', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: null, created_at: '2026-02-23 15:30:00' },
-        { id: 10, user: { id: 10, name: 'Dodi Pratama' }, vehicle_brand: 'Toyota', vehicle_model: 'Rush', vehicle_year: '2021', license_plate: 'H 5555 EEE', location: 'Banten, Tangerang', inspection_date: '2026-02-24', status: 'completed', payment_status: 'paid', payment_method: 'bank_transfer', price: 350000, mechanic_id: 1, mechanic_name: 'Budi Teknisi', scheduled_date: '2026-02-24', scheduled_time: '15:00-17:00', created_at: '2026-02-22 11:00:00' },
-    ];
-
-    // Mock pagination
-    const mockPagination = {
-        current_page: page,
-        total_pages: 3,
-        total: 25
-    };
-
-    // Filter mock data based on status and search
-    let filteredData = mockInspectionsAll;
-    if (status) {
-        filteredData = filteredData.filter(i => i.status === status);
-    }
-    if (search) {
-        const searchLower = search.toLowerCase();
-        filteredData = filteredData.filter(i =>
-            i.user.name.toLowerCase().includes(searchLower) ||
-            i.vehicle_brand.toLowerCase().includes(searchLower) ||
-            i.vehicle_model.toLowerCase().includes(searchLower) ||
-            i.license_plate.toLowerCase().includes(searchLower)
-        );
-    }
 
     try {
         const params = new URLSearchParams({
@@ -313,12 +274,8 @@ async function loadAllInspections(page = 1) {
         renderAllInspections(data.inspections || []);
         renderPagination('inspectionPagination', data.pagination, 'loadAllInspections');
     } catch (error) {
-        console.log('Using mock data for inspections');
-        // Use mock data for frontend demo
-        const startIndex = (page - 1) * 10;
-        const paginatedData = filteredData.slice(startIndex, startIndex + 10);
-        renderAllInspections(paginatedData);
-        renderPagination('inspectionPagination', mockPagination, 'loadAllInspections');
+        console.error('Failed to load inspections:', error);
+        renderAllInspections([]);
     }
 }
 
@@ -338,21 +295,33 @@ function renderAllInspections(inspections) {
         return;
     }
 
-    tbody.innerHTML = inspections.map(insp => `
+    tbody.innerHTML = inspections.map(insp => {
+        const isPending = insp.status === 'pending';
+        const actionBtn = isPending
+            ? `<button class="btn btn-sm btn-primary" onclick="openAssignInspector(${insp.id})" title="Assign Inspector">
+                 <i class="bi bi-person-plus"></i>
+               </button>
+               <button class="btn btn-sm btn-outline-primary" onclick="viewInspection(${insp.id})" title="Lihat Detail">
+                 <i class="bi bi-eye"></i>
+               </button>`
+            : `<button class="btn btn-sm btn-warning" onclick="openUpdateStatus(${insp.id}, '${insp.status}')" title="Update Status">
+                 <i class="bi bi-pencil-square"></i>
+               </button>
+               <button class="btn btn-sm btn-outline-primary" onclick="viewInspection(${insp.id})" title="Lihat Detail">
+                 <i class="bi bi-eye"></i>
+               </button>`;
+
+        return `
         <tr>
             <td>#${insp.id}</td>
             <td>${insp.user?.name || '-'}</td>
             <td>${insp.vehicle_brand} ${insp.vehicle_model}</td>
-            <td>${insp.location || '-'}</td>
+            <td>${insp.city || '-'}, ${insp.province || '-'}</td>
             <td>${formatDate(insp.inspection_date)}</td>
             <td>${getStatusBadge(insp.status)}</td>
-            <td>
-                <button class="btn btn-sm btn-outline-primary" onclick="viewInspection(${insp.id})" title="Lihat Detail">
-                    <i class="bi bi-eye"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+            <td>${actionBtn}</td>
+        </tr>`;
+    }).join('');
 }
 
 // Load all users
@@ -362,62 +331,24 @@ async function loadAllUsers(page = 1) {
     const role = document.getElementById('userRoleFilter').value;
     const search = document.getElementById('userSearch').value;
 
-    // MOCK DATA - Manajemen user
-    const mockUsers = [
-        // User (customer)
-        { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', phone: '081234567890', role: 'user', created_at: '2026-01-15 10:30:00' },
-        { id: 2, name: 'Siti Nurhaliza', email: 'siti@example.com', phone: '081234567891', role: 'user', created_at: '2026-01-20 14:15:00' },
-        { id: 3, name: 'Budi Santoso', email: 'budi@example.com', phone: '081234567892', role: 'user', created_at: '2026-02-01 09:30:00' },
-        { id: 4, name: 'Dewi Lestari', email: 'dewi@example.com', phone: '081234567893', role: 'user', created_at: '2026-02-10 11:45:00' },
-        { id: 7, name: 'Rina Susilowati', email: 'rina@example.com', phone: '081234567894', role: 'user', created_at: '2026-02-15 16:20:00' },
-        { id: 8, name: 'Dodi Pratama', email: 'dodi@example.com', phone: '081234567895', role: 'user', created_at: '2026-02-20 08:10:00' },
-        { id: 9, name: 'Maya Sari', email: 'maya@example.com', phone: '081234567896', role: 'user', created_at: '2026-02-25 13:30:00' },
-        { id: 10, name: 'Hendra Wijaya', email: 'hendra@example.com', phone: '081234567897', role: 'user', created_at: '2026-03-01 10:00:00' },
-        // Admin
-        { id: 5, name: 'Admin OTOMAN', email: 'admin@otoman.com', phone: null, role: 'admin', created_at: '2026-01-01 08:00:00' },
-        // Inspector
-        { id: 6, name: 'Budi Teknisi', email: 'budi@otoman.com', phone: '081987654321', role: 'inspector', created_at: '2026-02-01 09:00:00' },
-        { id: 11, name: 'Joko Mechanic', email: 'joko@otoman.com', phone: '081555555555', role: 'inspector', created_at: '2026-02-05 10:30:00' },
-        { id: 12, name: 'Asep Service', email: 'asep@otoman.com', phone: '081333333333', role: 'inspector', created_at: '2026-02-10 14:00:00' },
-        { id: 13, name: 'Dedi Inspector', email: 'dedi@otoman.com', phone: '081222222222', role: 'inspector', created_at: '2026-02-15 11:20:00' },
-        { id: 14, name: 'Rudi Teknisi', email: 'rudi@otoman.com', phone: '081111111111', role: 'inspector', created_at: '2026-02-20 09:45:00' },
-    ];
+    try {
+        const params = new URLSearchParams({ page, limit: 10 });
+        if (role) params.append('role', role);
+        if (search) params.append('search', search);
 
-    // Mock pagination
-    const mockPagination = {
-        current_page: page,
-        total_pages: 2,
-        total: 14
-    };
+        const response = await fetch(`${API_BASE_URL}/admin/users?${params}`, {
+            headers: getHeaders()
+        });
 
-    // Filter mock data
-    let filteredUsers = mockUsers;
-    if (role) {
-        filteredUsers = filteredUsers.filter(u => u.role === role);
+        if (!response.ok) throw new Error('Failed to load users');
+
+        const data = await response.json();
+        renderAllUsers(data.users || []);
+        renderPagination('userPagination', data.pagination, 'loadAllUsers');
+    } catch (error) {
+        console.error('Failed to load users:', error);
+        renderAllUsers([]);
     }
-    if (search) {
-        const searchLower = search.toLowerCase();
-        filteredUsers = filteredUsers.filter(u =>
-            u.name.toLowerCase().includes(searchLower) ||
-            u.email.toLowerCase().includes(searchLower) ||
-            (u.phone && u.phone.includes(searchLower))
-        );
-    }
-
-    // Langsung gunakan mock data saja (belum ada API)
-    console.log('Loading users with mock data...', { role, search });
-    const startIndex = (page - 1) * 10;
-    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + 10);
-    renderAllUsers(paginatedUsers);
-
-    // Update pagination based on filtered count
-    const totalPages = Math.ceil(filteredUsers.length / 10);
-    const updatedPagination = {
-        current_page: page,
-        total_pages: totalPages,
-        total: filteredUsers.length
-    };
-    renderPagination('userPagination', updatedPagination, 'loadAllUsers');
 }
 
 // Render all users table
@@ -457,69 +388,6 @@ function renderAllUsers(users) {
 
 // View inspection detail
 async function viewInspection(id) {
-    // MOCK DATA - Dengan payment details, inspector assignment, dan file upload
-    const mockDetail = {
-        id: id,
-        order_code: 'INS-ABC' + String(id).padStart(3, '0'),
-        user: { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', phone: '081234567890' },
-        vehicle_type: 'mobil',
-        vehicle_brand: 'Toyota',
-        vehicle_model: 'Avanza',
-        vehicle_year: '2021',
-        license_plate: 'B 1234 ABC',
-        mileage: 45000,
-        condition: 'good',
-        notes: 'Mobil terawat, body mulus, mesin halus',
-        inspection_date: '2026-03-05',
-        inspection_time: '09:00-11:00',
-        province: 'DKI Jakarta',
-        city: 'Jakarta Selatan',
-        address: 'Jl. Sudirman No. 123, Jakarta Selatan',
-        contact_phone: '081234567890',
-        price: 350000,
-        status: 'pending',
-        admin_notes: null,
-        // Payment details
-        payment_method: 'bank_transfer',
-        payment_status: 'paid',
-        payment_proof_path: '/storage/payment_proofs/bukti-bayar-' + id + '.jpg',
-        payment_proof_url: 'https://via.placeholder.com/400x300?text=Bukti+Pembayaran',
-        paid_at: '2026-03-01 10:35:00',
-        // Inspector assignment
-        mechanic_id: null,
-        mechanic_name: null,
-        mechanic_phone: null,
-        scheduled_date: null,
-        scheduled_time: null,
-        // Timestamps
-        created_at: '2026-03-01 10:30:00',
-        updated_at: '2026-03-01 10:30:00'
-    };
-
-    // Assign mock mechanic for some inspections
-    if (id == 2) {
-        mockDetail.mechanic_id = 1;
-        mockDetail.mechanic_name = 'Budi Teknisi';
-        mockDetail.mechanic_phone = '081987654321';
-        mockDetail.scheduled_date = '2026-03-05';
-        mockDetail.scheduled_time = '09:00-11:00';
-        mockDetail.status = 'in_progress';
-    }
-
-    if (id == 3) {
-        mockDetail.mechanic_id = 2;
-        mockDetail.mechanic_name = 'Joko Mechanic';
-        mockDetail.mechanic_phone = '081555555555';
-        mockDetail.scheduled_date = '2026-03-03';
-        mockDetail.scheduled_time = '10:00-12:00';
-        mockDetail.status = 'completed';
-    }
-
-    if (id == 6) {
-        mockDetail.status = 'rejected';
-        mockDetail.admin_notes = 'Kendaraan tidak memenuhi kriteria inspection';
-    }
-
     try {
         const response = await fetch(`${API_BASE_URL}/admin/inspections/${id}`, {
             headers: getHeaders()
@@ -530,8 +398,9 @@ async function viewInspection(id) {
         const inspection = await response.json();
         renderInspectionDetail(inspection);
     } catch (error) {
-        console.log('Using mock data for inspection detail');
-        renderInspectionDetail(mockDetail);
+        console.error('Failed to load inspection detail:', error);
+        showToast('Gagal memuat detail inspeksi', 'danger');
+        renderInspectionDetail({});
     }
 
     const modal = new bootstrap.Modal(document.getElementById('inspectionDetailModal'));
@@ -636,8 +505,8 @@ function renderInspectionDetail(insp) {
                 ${insp.mechanic_id ? `
                 <div class="row">
                     <div class="col-md-6">
-                        <p class="mb-1">Inspector: <strong>${insp.mechanic_name}</strong></p>
-                        <p class="mb-0 text-muted">Telp: ${insp.mechanic_phone}</p>
+                        <p class="mb-1">Inspector: <strong>${insp.mechanic?.name || insp.mechanic_name || '-'}</strong></p>
+                        <p class="mb-0 text-muted">Telp: ${insp.mechanic?.phone || insp.mechanic_phone || '-'}</p>
                     </div>
                     <div class="col-md-6">
                         <p class="mb-1">Jadwal: ${formatDate(insp.scheduled_date)}</p>
@@ -740,90 +609,59 @@ function viewPaymentProof(imageUrl, filename) {
     modal.show();
 }
 
-// Mock data for mechanics/inspectors
-const mockMechanics = [
-    { id: 1, name: 'Budi Teknisi', phone: '081987654321', area: 'Jakarta' },
-    { id: 2, name: 'Joko Mechanic', phone: '081555555555', area: 'Bandung' },
-    { id: 3, name: 'Asep Service', phone: '081333333333', area: 'Surabaya' },
-    { id: 4, name: 'Dedi Inspector', phone: '081222222222', area: 'Jakarta' },
-    { id: 5, name: 'Rudi Teknisi', phone: '081111111111', area: 'Bekasi' }
-];
-
 // Open assign inspector modal
-function openAssignInspector(inspectionId) {
-    // Check if modal exists, if not create it
-    let modal = document.getElementById('assignInspectorModal');
+async function openAssignInspector(inspectionId) {
+    const modal = document.getElementById('assignInspectorModal');
     if (!modal) {
-        const modalHtml = `
-            <div class="modal fade" id="assignInspectorModal" tabindex="-1" aria-labelledby="assignInspectorModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="assignInspectorModalLabel">
-                                <i class="bi bi-person-plus me-2"></i>Assign Inspector
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="assignInspectorForm">
-                                <input type="hidden" id="assignInspectionId">
-                                <div class="mb-3">
-                                    <label class="form-label">Pilih Inspector</label>
-                                    <select class="form-select" id="mechanicSelect" required>
-                                        <option value="">-- Pilih Inspector --</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Tanggal Jadwal</label>
-                                    <input type="date" class="form-control" id="scheduledDate" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Waktu Jadwal</label>
-                                    <select class="form-select" id="scheduledTime" required>
-                                        <option value="">-- Pilih Waktu --</option>
-                                        <option value="09:00-11:00">09:00 - 11:00</option>
-                                        <option value="11:00-13:00">11:00 - 13:00</option>
-                                        <option value="13:00-15:00">13:00 - 15:00</option>
-                                        <option value="15:00-17:00">15:00 - 17:00</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Catatan</label>
-                                    <textarea class="form-control" id="inspectorNotes" rows="2" placeholder="Catatan untuk inspector..."></textarea>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                            <button type="button" class="btn btn-primary" id="saveInspectorBtn">
-                                <i class="bi bi-check-lg me-2"></i>Simpan
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        modal = document.getElementById('assignInspectorModal');
-
-        // Add event listener for save button
-        document.getElementById('saveInspectorBtn').addEventListener('click', saveInspectorAssignment);
+        alert('Modal tidak ditemukan!');
+        return;
     }
 
     // Set inspection ID
-    document.getElementById('assignInspectionId').value = inspectionId;
+    document.getElementById('assignListingId').value = inspectionId;
 
-    // Populate mechanic select
-    const mechanicSelect = document.getElementById('mechanicSelect');
-    mechanicSelect.innerHTML = '<option value="">-- Pilih Inspector --</option>';
-    mockMechanics.forEach(m => {
-        mechanicSelect.innerHTML += `<option value="${m.id}">${m.name} (${m.area})</option>`;
-    });
+    // Fetch inspection data to pre-fill date/time from client's request
+    let inspectionDate = '';
+    let inspectionTime = '';
+    try {
+        const inspRes = await fetch(`${API_BASE_URL}/admin/inspections/${inspectionId}`, {
+            headers: getHeaders()
+        });
+        if (inspRes.ok) {
+            const inspData = await inspRes.json();
+            inspectionDate = inspData.inspection_date || '';
+            inspectionTime = inspData.inspection_time || '';
+        }
+    } catch (error) {
+        console.error('Failed to load inspection for pre-fill:', error);
+    }
 
-    // Reset form
-    document.getElementById('scheduledDate').value = '';
-    document.getElementById('scheduledTime').value = '';
-    document.getElementById('inspectorNotes').value = '';
+    // Pre-fill date/time from client's request (read-only for accuracy)
+    document.getElementById('assignInspectionDate').value = inspectionDate;
+    document.getElementById('assignInspectionTime').value = inspectionTime;
+
+    // Fetch mechanics from API
+    const mechanicSelect = document.getElementById('assignInspectorSelect');
+    mechanicSelect.innerHTML = '<option value="">Memuat...</option>';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/mechanics`, {
+            headers: getHeaders()
+        });
+        if (res.ok) {
+            const result = await res.json();
+            const mechanics = result.mechanics || [];
+            mechanicSelect.innerHTML = '<option value="">-- Pilih Inspector --</option>';
+            mechanics.forEach(m => {
+                mechanicSelect.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+            });
+        } else {
+            mechanicSelect.innerHTML = '<option value="">Gagal memuat</option>';
+        }
+    } catch (error) {
+        console.error('Failed to load mechanics:', error);
+        mechanicSelect.innerHTML = '<option value="">Error loading</option>';
+    }
 
     // Show modal
     const bsModal = new bootstrap.Modal(modal);
@@ -832,11 +670,10 @@ function openAssignInspector(inspectionId) {
 
 // Save inspector assignment
 async function saveInspectorAssignment() {
-    const inspectionId = document.getElementById('assignInspectionId').value;
-    const mechanicId = document.getElementById('mechanicSelect').value;
-    const scheduledDate = document.getElementById('scheduledDate').value;
-    const scheduledTime = document.getElementById('scheduledTime').value;
-    const notes = document.getElementById('inspectorNotes').value;
+    const inspectionId = document.getElementById('assignListingId').value;
+    const mechanicId = document.getElementById('assignInspectorSelect').value;
+    const scheduledDate = document.getElementById('assignInspectionDate').value;
+    const scheduledTime = document.getElementById('assignInspectionTime').value;
 
     // Validation
     if (!mechanicId || !scheduledDate || !scheduledTime) {
@@ -844,44 +681,42 @@ async function saveInspectorAssignment() {
         return;
     }
 
-    // Find selected mechanic
-    const mechanic = mockMechanics.find(m => m.id == mechanicId);
+    const resultEl = document.getElementById('assignResult');
+    resultEl.innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm text-primary"></div> Menyimpan...</div>';
 
-    // Show loading
-    const saveBtn = document.getElementById('saveInspectorBtn');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
-
-    // Simulate API call
     try {
-        // In real app: await fetch(`${API_BASE_URL}/admin/inspections/${inspectionId}/assign`, ...)
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const response = await fetch(`${API_BASE_URL}/admin/inspections/${inspectionId}/assign`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({
+                mechanic_id: parseInt(mechanicId),
+                scheduled_date: scheduledDate,
+                scheduled_time: scheduledTime
+            })
+        });
 
-        // Update local mock data
-        window.currentInspection.mechanic_id = parseInt(mechanicId);
-        window.currentInspection.mechanic_name = mechanic.name;
-        window.currentInspection.mechanic_phone = mechanic.phone;
-        window.currentInspection.scheduled_date = scheduledDate;
-        window.currentInspection.scheduled_time = scheduledTime;
-        window.currentInspection.status = 'in_progress';
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || `Gagal assign inspector (${response.status})`);
+        }
 
-        // Close modal
-        bootstrap.Modal.getInstance(document.getElementById('assignInspectorModal')).hide();
+        const resultData = await response.json();
+        console.log('[ASSIGN] Success:', resultData);
 
-        // Refresh detail view
-        viewInspection(parseInt(inspectionId));
+        resultEl.innerHTML = '<div class="alert alert-success py-2 mb-0">Inspector berhasil di-assign!</div>';
 
-        // Refresh table
-        loadAllInspections(currentPage.inspections);
+        setTimeout(() => {
+            bootstrap.Modal.getInstance(document.getElementById('assignInspectorModal')).hide();
+            viewInspection(parseInt(inspectionId));
+            loadAllInspections(currentPage.inspections);
+            loadStats();
+            loadRecentInspections();
+        }, 1000);
 
         showToast('Inspector berhasil di-assign!', 'success');
     } catch (error) {
-        console.error('Error assigning inspector:', error);
-        showToast('Gagal assign inspector', 'danger');
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerHTML = originalText;
+        console.error('[ASSIGN] Error:', error);
+        resultEl.innerHTML = `<div class="alert alert-danger py-2 mb-0">${error.message}</div>`;
     }
 }
 
@@ -933,17 +768,21 @@ async function saveStatusUpdate() {
     saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
 
     try {
-        // In real app: call API
-        // const response = await fetch(`${API_BASE_URL}/admin/inspections/${id}/status`, {
-        //     method: 'PUT',
-        //     headers: getHeaders(),
-        //     body: JSON.stringify(requestBody)
-        // });
+        const response = await fetch(`${API_BASE_URL}/admin/inspections/${id}/status`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(requestBody)
+        });
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || 'Gagal mengupdate status');
+        }
 
-        // Update local mock data
+        const resultData = await response.json();
+        console.log('Status updated:', resultData);
+
+        // Update local state
         window.currentInspection.status = status;
         window.currentInspection.admin_notes = notes;
         window.currentInspection.updated_at = new Date().toISOString();
@@ -961,8 +800,10 @@ async function saveStatusUpdate() {
         // Refresh detail view
         viewInspection(parseInt(id));
 
-        // Refresh table
+        // Refresh table and stats
         loadAllInspections(currentPage.inspections);
+        loadStats();
+        loadRecentInspections();
     } catch (error) {
         console.error('Error updating status:', error);
         showAlert('Gagal mengupdate status', 'danger');
@@ -974,28 +815,20 @@ async function saveStatusUpdate() {
 
 // View user detail
 async function viewUser(id) {
-    // MOCK DATA - Detail user
-    const mockUserDetails = {
-        1: { id: 1, name: 'Ahmad Wijaya', email: 'ahmad@example.com', phone: '081234567890', role: 'user', created_at: '2026-01-15 10:30:00' },
-        2: { id: 2, name: 'Siti Nurhaliza', email: 'siti@example.com', phone: '081234567891', role: 'user', created_at: '2026-01-20 14:15:00' },
-        3: { id: 3, name: 'Budi Santoso', email: 'budi@example.com', phone: '081234567892', role: 'user', created_at: '2026-02-01 09:30:00' },
-        4: { id: 4, name: 'Dewi Lestari', email: 'dewi@example.com', phone: '081234567893', role: 'user', created_at: '2026-02-10 11:45:00' },
-        5: { id: 5, name: 'Admin OTOMAN', email: 'admin@otoman.com', phone: null, role: 'admin', created_at: '2026-01-01 08:00:00' },
-        6: { id: 6, name: 'Budi Teknisi', email: 'budi@otoman.com', phone: '081987654321', role: 'inspector', created_at: '2026-02-01 09:00:00' },
-        7: { id: 7, name: 'Rina Susilowati', email: 'rina@example.com', phone: '081234567894', role: 'user', created_at: '2026-02-15 16:20:00' },
-        8: { id: 8, name: 'Dodi Pratama', email: 'dodi@example.com', phone: '081234567895', role: 'user', created_at: '2026-02-20 08:10:00' },
-        9: { id: 9, name: 'Maya Sari', email: 'maya@example.com', phone: '081234567896', role: 'user', created_at: '2026-02-25 13:30:00' },
-        10: { id: 10, name: 'Hendra Wijaya', email: 'hendra@example.com', phone: '081234567897', role: 'user', created_at: '2026-03-01 10:00:00' },
-        11: { id: 11, name: 'Joko Mechanic', email: 'joko@otoman.com', phone: '081555555555', role: 'inspector', created_at: '2026-02-05 10:30:00' },
-        12: { id: 12, name: 'Asep Service', email: 'asep@otoman.com', phone: '081333333333', role: 'inspector', created_at: '2026-02-10 14:00:00' },
-        13: { id: 13, name: 'Dedi Inspector', email: 'dedi@otoman.com', phone: '081222222222', role: 'inspector', created_at: '2026-02-15 11:20:00' },
-        14: { id: 14, name: 'Rudi Teknisi', email: 'rudi@otoman.com', phone: '081111111111', role: 'inspector', created_at: '2026-02-20 09:45:00' },
-    };
+    try {
+        const response = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
+            headers: getHeaders()
+        });
 
-    // Langsung gunakan mock data
-    console.log('Loading user detail with mock data, id:', id);
-    const user = mockUserDetails[id] || mockUserDetails[1];
-    renderUserDetail(user);
+        if (!response.ok) throw new Error('Failed to load user');
+
+        const user = await response.json();
+        renderUserDetail(user);
+    } catch (error) {
+        console.error('Gagal memuat detail user:', error);
+        showToast('Gagal memuat detail user', 'danger');
+        return;
+    }
 
     const modal = new bootstrap.Modal(document.getElementById('userDetailModal'));
     modal.show();
@@ -1029,8 +862,159 @@ function renderUserDetail(user) {
 
 // Download report
 function downloadReport(id) {
-    // Implement report download
-    window.open(`${API_BASE_URL}/admin/inspections/${id}/report`, '_blank');
+    const btn = document.getElementById('downloadReportBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memuat...';
+
+    fetch(`${API_BASE_URL}/admin/inspections/${id}/report`, { headers: getHeaders() })
+        .then(res => {
+            if (!res.ok) throw new Error('Gagal memuat laporan');
+            return res.json();
+        })
+        .then(report => {
+            showReportModal(report);
+        })
+        .catch(err => {
+            console.error('Error downloading report:', err);
+            showToast('Gagal memuat laporan: ' + err.message, 'danger');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
+}
+
+function showReportModal(report) {
+    const resultStatus = report.result?.status || '';
+    const resultClass = resultStatus.toLowerCase();
+    const html = `
+<div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-text me-2"></i>Laporan Inspeksi - ${report.order_code}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background:#f8f9fa;">
+                <iframe id="reportIframe" style="width:100%;height:70vh;border:none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary" onclick="frames[0].print()">
+                    <i class="bi bi-printer me-2"></i>Cetak / Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>`;
+
+    document.getElementById('reportModal')?.remove();
+    document.body.insertAdjacentHTML('beforeend', html);
+
+    const iframe = document.getElementById('reportIframe');
+    iframe.srcdoc = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laporan Inspeksi - ${report.order_code}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: auto; }
+        h1 { text-align: center; color: #333; }
+        h2 { color: #555; border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-top: 30px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .order-code { font-size: 24px; font-weight: bold; color: #0d6efd; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .card.full { grid-column: 1 / -1; }
+        .label { color: #666; font-size: 12px; text-transform: uppercase; }
+        .value { font-size: 16px; font-weight: 500; }
+        .result-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+        .result-disetujui { background: #d1e7dd; color: #0f5132; }
+        .result-menunggu { background: #fff3cd; color: #664d03; }
+        .result-ditolak { background: #f8d7da; color: #842029; }
+        .footer { text-align: center; margin-top: 40px; color: #999; font-size: 12px; }
+        @media print { button { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LAPORAN HASIL INSPEKSI KENDARAAN</h1>
+        <div class="order-code">${report.order_code}</div>
+    </div>
+
+    <h2>Informasi Umum</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Tanggal Inspeksi</div>
+            <div class="value">${report.inspection_date || '-'} ${report.inspection_time || ''}</div>
+        </div>
+        <div class="card">
+            <div class="label">Hasil Inspeksi</div>
+            <div class="value">
+                <span class="result-badge result-${resultClass}">${report.result?.status || '-'}</span>
+            </div>
+        </div>
+    </div>
+
+    <h2>Data Customer</h2>
+    <div class="grid">
+        <div class="card"><div class="label">Nama</div><div class="value">${report.user?.name || '-'}</div></div>
+        <div class="card"><div class="label">Telepon</div><div class="value">${report.user?.phone || '-'}</div></div>
+        <div class="card full"><div class="label">Email</div><div class="value">${report.user?.email || '-'}</div></div>
+    </div>
+
+    <h2>Data Kendaraan</h2>
+    <div class="grid">
+        <div class="card"><div class="label">Tipe</div><div class="value">${report.vehicle?.type || '-'}</div></div>
+        <div class="card"><div class="label">Merek / Model</div><div class="value">${report.vehicle?.brand || ''} ${report.vehicle?.model || ''}</div></div>
+        <div class="card"><div class="label">Tahun</div><div class="value">${report.vehicle?.year || '-'}</div></div>
+        <div class="card"><div class="label">No. Plat</div><div class="value">${report.vehicle?.license_plate || '-'}</div></div>
+        <div class="card"><div class="label">Jarak Tempuh</div><div class="value">${Number(report.vehicle?.mileage || 0).toLocaleString('id-ID')} km</div></div>
+        <div class="card"><div class="label">Kondisi</div><div class="value">${report.vehicle?.condition || '-'}</div></div>
+    </div>
+
+    <h2>Lokasi Inspeksi</h2>
+    <div class="card full">
+        <div class="value">${report.location?.address || '-'}<br>${report.location?.city || ''}, ${report.location?.province || ''}</div>
+    </div>
+
+    ${report.mechanic ? `
+    <h2>Inspector</h2>
+    <div class="grid">
+        <div class="card"><div class="label">Nama</div><div class="value">${report.mechanic.name}</div></div>
+        <div class="card"><div class="label">Jadwal</div><div class="value">${report.scheduled_date || '-'} ${report.scheduled_time || ''}</div></div>
+    </div>` : ''}
+
+    ${report.result?.status ? `
+    <h2>Hasil Pemeriksaan</h2>
+    <div class="grid">
+        <div class="card"><div class="label">Body / Exterior</div><div class="value">${report.result?.body_condition || '-'}</div></div>
+        <div class="card"><div class="label">Mesin / Engine</div><div class="value">${report.result?.engine_condition || '-'}</div></div>
+        <div class="card"><div class="label">Interior</div><div class="value">${report.result?.interior_condition || '-'}</div></div>
+        <div class="card"><div class="label">Hasil Akhir</div><div class="value"><span class="result-badge result-${resultClass}">${report.result?.status}</span></div></div>
+        ${report.result?.notes ? `<div class="card full"><div class="label">Catatan</div><div class="value">${report.result.notes}</div></div>` : ''}
+    </div>` : ''}
+
+    ${report.admin_notes ? `
+    <h2>Catatan Admin</h2>
+    <div class="card full"><div class="value">${report.admin_notes}</div></div>
+    ` : ''}
+
+    <h2>Pembayaran</h2>
+    <div class="grid">
+        <div class="card"><div class="label">Metode</div><div class="value">${report.payment?.method || '-'}</div></div>
+        <div class="card"><div class="label">Total</div><div class="value">Rp ${Number(report.payment?.price || 0).toLocaleString('id-ID')}</div></div>
+    </div>
+
+    <div class="footer">
+        <p>Dokumen ini generated secara otomatis oleh sistem OTOMAN</p>
+        <p>${report.generated_at}</p>
+    </div>
+</body>
+</html>`;
+
+    new bootstrap.Modal(document.getElementById('reportModal')).show();
 }
 
 // Update status chart
@@ -1135,6 +1119,8 @@ function renderPagination(elementId, pagination, loadFunction) {
 // Filter events
 document.getElementById('inspectionStatusFilter')?.addEventListener('change', () => loadAllInspections(1));
 document.getElementById('inspectionSearch')?.addEventListener('input', debounce(() => loadAllInspections(1), 500));
+document.getElementById('mktStatusFilter')?.addEventListener('change', () => loadMarketplaceListings());
+document.getElementById('mktSearch')?.addEventListener('input', debounce(() => loadMarketplaceListings(), 500));
 document.getElementById('userRoleFilter')?.addEventListener('change', () => loadAllUsers(1));
 document.getElementById('userSearch')?.addEventListener('input', debounce(() => loadAllUsers(1), 500));
 
@@ -1162,15 +1148,23 @@ function getStatusBadge(status) {
 }
 
 function getRoleBadge(role) {
-    return role === 'admin'
-        ? '<span class="badge bg-danger">Admin</span>'
-        : '<span class="badge bg-primary">User</span>';
+    const badges = {
+        'admin': '<span class="badge bg-danger">Admin</span>',
+        'inspector': '<span class="badge bg-info">Inspector</span>',
+        'user': '<span class="badge bg-primary">User</span>'
+    };
+    return badges[role] || `<span class="badge bg-secondary">${role}</span>`;
 }
 
 function formatDate(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function formatRupiah(amount) {
+    if (!amount && amount !== 0) return '-';
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
 }
 
 function debounce(func, wait) {
@@ -1190,6 +1184,33 @@ function showAlert(message, type = 'info') {
     alert(message);
 }
 
+function showToast(message, type = 'info') {
+    // Create toast notification
+    const toastContainer = document.getElementById('toastContainer') || (() => {
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.zIndex = '9999';
+        document.body.appendChild(container);
+        return container;
+    })();
+
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'danger' ? 'danger' : type === 'warning' ? 'warning' : 'info'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    toast.addEventListener('hidden.bs.toast', () => toast.remove());
+}
+
 function logout() {
     localStorage.removeItem('otoman_token');
     localStorage.removeItem('otoman_user');
@@ -1197,3 +1218,275 @@ function logout() {
     localStorage.setItem('logout_time', Date.now());
     window.location.href = '../login.html';
 }
+
+// ============================================================
+// Marketplace Admin Functions
+// ============================================================
+
+// Load marketplace stats into the stat cards
+async function loadMarketplaceStats() {
+    // Marketplace stats loaded via loadMarketplaceListings
+}
+
+// Load marketplace listings into the table
+async function loadMarketplaceListings(params = {}) {
+    const tbody = document.getElementById('marketplaceListingsBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = `
+        <tr><td colspan="7" class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Memuat...</td></tr>
+    `;
+
+    try {
+        const query = new URLSearchParams({
+            status: document.getElementById('mktStatusFilter')?.value || '',
+            search: document.getElementById('mktSearch')?.value || '',
+            limit: 10,
+            ...params
+        });
+
+        const res = await fetch(`${API_BASE_URL}/admin/inspections?${query}`, {
+            headers: getHeaders()
+        });
+        const json = await res.json();
+        const items = json.inspections || json.data?.inspections || [];
+
+        if (!items.length) {
+            tbody.innerHTML = `
+                <tr><td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-shop fs-1"></i><p class="mt-2">Belum ada listing marketplace</p>
+                </td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = items.map(item => {
+            const images = item.vehicle_images ? (typeof item.vehicle_images === 'string' ? JSON.parse(item.vehicle_images) : item.vehicle_images) : [];
+            const thumb = images[0] || '';
+            const statusMap = {
+                pending: '<span class="badge bg-warning">Pending</span>',
+                scheduled: '<span class="badge bg-info">Terjadwal</span>',
+                assigned: '<span class="badge bg-primary">Ditugaskan</span>',
+                in_progress: '<span class="badge bg-primary">Sedang Inspeksi</span>',
+                completed: '<span class="badge bg-success">Selesai</span>',
+                rejected: '<span class="badge bg-danger">Ditolak</span>',
+            };
+            const badge = statusMap[item.status] || `<span class="badge bg-secondary">${item.status}</span>`;
+
+            return `
+            <tr>
+                <td><span class="text-primary fw-semibold">${item.order_code || '-'}</span></td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        ${thumb ? `<img src="${thumb}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;">` : '<div style="width:40px;height:40px;background:#f0f0f0;border-radius:6px;display:flex;align-items:center;justify-content:center;"><i class="bi bi-car-front text-muted"></i></div>'}
+                        <div>
+                            <div class="fw-semibold small">${item.vehicle_brand || item.brand} ${item.vehicle_model || item.model}</div>
+                            <div class="text-muted small">${item.license_plate || '-'}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${item.user?.name || '-'}</td>
+                <td>${item.vehicle_price ? 'Rp ' + Number(item.vehicle_price).toLocaleString('id-ID') : item.price ? 'Rp ' + Number(item.price).toLocaleString('id-ID') : '-'}</td>
+                <td>${badge}</td>
+                <td class="small text-muted">${item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID') : '-'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="viewMarketplaceDetail(${item.id})">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+
+    } catch (err) {
+        console.error('[Marketplace] Error loadMarketplaceListings:', err);
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Gagal memuat data: ${err.message}</td></tr>`;
+    }
+}
+
+// View marketplace listing detail
+async function viewMarketplaceDetail(id) {
+    const content = document.getElementById('marketplaceDetailContent');
+    const actions = document.getElementById('marketplaceDetailActions');
+    content.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Memuat...</div>';
+    actions.innerHTML = '';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/inspections/${id}`, { headers: getHeaders() });
+        if (!res.ok) throw new Error('Gagal memuat data');
+        const json = await res.json();
+        const item = json.data || json;
+        const images = item.vehicle_images ? (typeof item.vehicle_images === 'string' ? JSON.parse(item.vehicle_images) : item.vehicle_images) : [];
+
+        const statusMap = {
+            pending: ['<span class="badge bg-warning">Pending</span>', 'Menunggu'],
+            scheduled: ['<span class="badge bg-info">Terjadwal</span>', 'Dijadwalkan'],
+            assigned: ['<span class="badge bg-primary">Ditugaskan</span>', 'Sudah Ditugaskan'],
+            in_progress: ['<span class="badge bg-primary">Sedang Inspeksi</span>', 'Sedang Inspeksi'],
+            completed: ['<span class="badge bg-success">Selesai</span>', 'Selesai'],
+            rejected: ['<span class="badge bg-danger">Ditolak</span>', 'Ditolak'],
+        };
+        const [badge] = statusMap[item.status] || ['<span class="badge bg-secondary">-</span>', '-'];
+
+        const isPending = item.status === 'pending';
+        const isCompleted = item.status === 'completed';
+        const noMechanic = !item.mechanic_id;
+
+        let photoGallery = '';
+        if (images.length) {
+            photoGallery = `
+            <div class="mb-3">
+                <label class="fw-semibold small text-muted">Foto Kendaraan</label>
+                <div class="d-flex flex-wrap gap-2 mt-1">
+                    ${images.map((img, i) => `<img src="${img}" class="rounded" style="width:80px;height:80px;object-fit:cover;border:2px solid #dee2e6;" onclick="window.open('${img}','_blank')" title="Foto ${i+1}">`).join('')}
+                </div>
+            </div>`;
+        } else {
+            photoGallery = `<div class="text-muted small mb-3"><i class="bi bi-image"></i> Tidak ada foto</div>`;
+        }
+
+        content.innerHTML = `
+            ${photoGallery}
+            <div class="row g-3">
+                <div class="col-6"><label class="fw-semibold small text-muted">Kode</label><div class="fw-semibold text-primary">${item.order_code || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Status</label><div>${badge}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Merek</label><div>${item.vehicle_brand || item.brand}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Model</label><div>${item.vehicle_model || item.model}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Tahun</label><div>${item.year || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Plat</label><div>${item.license_plate || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Jarak Tempuh</label><div>${item.mileage ? Number(item.mileage).toLocaleString('id-ID') + ' km' : '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Transmisi</label><div>${item.transmission || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Harga Jual</label><div class="fw-semibold text-success">${item.vehicle_price ? 'Rp ' + Number(item.vehicle_price).toLocaleString('id-ID') : '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Tanggal Inspeksi</label><div>${item.inspection_date || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Waktu</label><div>${item.inspection_time || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Inspector</label><div>${item.mechanic?.name || (noMechanic ? '<span class="text-danger">Belum ada</span>' : '-')}</div></div>
+                <div class="col-12"><label class="fw-semibold small text-muted">Lokasi</label><div>${item.address || ''}, ${item.city || ''}, ${item.province || ''}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Penjual</label><div>${item.user?.name || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">HP Penjual</label><div>${item.contact_phone || '-'}</div></div>
+                ${item.notes ? `<div class="col-12"><label class="fw-semibold small text-muted">Catatan</label><div>${item.notes}</div></div>` : ''}
+                ${item.result ? `<div class="col-12"><label class="fw-semibold small text-muted">Hasil Inspeksi</label><div class="fw-semibold ${item.result === 'approve' ? 'text-success' : 'text-danger'}">${item.result === 'approve' ? 'Disetujui' : 'Ditolak'}</div></div>` : ''}
+            </div>`;
+
+        // Action buttons based on status
+        let btnHtml = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>';
+
+        if (isPending && noMechanic) {
+            btnHtml = `
+                <button type="button" class="btn btn-primary" onclick="openAssignInspectorMkt(${item.id})">
+                    <i class="bi bi-person-badge me-1"></i>Assign Inspector
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>`;
+        } else if (isCompleted && item.result === 'approve') {
+            btnHtml = `
+                <span class="me-auto text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>Sudah Dipublikasi</span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>`;
+        } else if (isCompleted && item.result === 'reject') {
+            btnHtml = `
+                <span class="me-auto text-danger fw-semibold"><i class="bi bi-x-circle me-1"></i>Ditolak</span>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>`;
+        } else {
+            btnHtml = `
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>`;
+        }
+
+        actions.innerHTML = btnHtml;
+
+        const modal = new bootstrap.Modal(document.getElementById('marketplaceDetailModal'));
+        modal.show();
+    } catch (err) {
+        content.innerHTML = `<div class="text-center text-danger py-4">Gagal memuat: ${err.message}</div>`;
+    }
+}
+
+// Open assign inspector for marketplace listing
+async function openAssignInspectorMkt(id) {
+    closeMktDetail();
+
+    const modal = document.getElementById('assignInspectorModal');
+    document.getElementById('assignListingId').value = id;
+
+    // Pre-fill date/time from listing data
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/inspections/${id}`, { headers: getHeaders() });
+        if (res.ok) {
+            const json = await res.json();
+            const item = json.data || json;
+            document.getElementById('assignInspectionDate').value = item.inspection_date || '';
+            document.getElementById('assignInspectionTime').value = item.inspection_time || '';
+        }
+    } catch {}
+
+    // Load mechanics
+    const select = document.getElementById('assignInspectorSelect');
+    select.innerHTML = '<option value="">Memuat...</option>';
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/mechanics`, { headers: getHeaders() });
+        if (res.ok) {
+            const json = await res.json();
+            const mechanics = json.mechanics || [];
+            select.innerHTML = '<option value="">-- Pilih Inspector --</option>';
+            mechanics.forEach(m => {
+                select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+            });
+        } else {
+            select.innerHTML = '<option value="">Gagal memuat</option>';
+        }
+    } catch {
+        select.innerHTML = '<option value="">Error loading</option>';
+    }
+
+    new bootstrap.Modal(modal).show();
+}
+
+// Save assign inspector for marketplace
+async function saveInspectorAssignment() {
+    const id = document.getElementById('assignListingId').value;
+    const mechanicId = document.getElementById('assignInspectorSelect').value;
+    const date = document.getElementById('assignInspectionDate').value;
+    const time = document.getElementById('assignInspectionTime').value;
+
+    if (!mechanicId) return alert('Pilih inspector');
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/admin/inspections/${id}/assign`, {
+            method: 'POST',
+            headers: { ...getHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mechanic_id: mechanicId, scheduled_date: date, scheduled_time: time })
+        });
+
+        if (!res.ok) throw new Error('Gagal assign inspector');
+
+        bootstrap.Modal.getInstance(document.getElementById('assignInspectorModal')).hide();
+        showToast('Inspector berhasil di-assign!', 'success');
+        loadMarketplaceListings();
+    } catch (err) {
+        alert('Error: ' + err.message);
+    }
+}
+
+function closeMktDetail() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('marketplaceDetailModal'));
+    if (modal) modal.hide();
+}
+
+// Filter marketplace listings
+let mktFilterTimeout = null;
+function filterMarketplaceListings(_status, _search) {
+    // Marketplace not available - no-op
+}
+
+// Make functions globally available for onclick handlers
+window.openAssignInspector = openAssignInspector;
+window.saveInspectorAssignment = saveInspectorAssignment;
+window.viewInspection = viewInspection;
+window.viewPaymentProof = viewPaymentProof;
+window.loadAllInspections = loadAllInspections;
+window.loadMarketplaceListings = loadMarketplaceListings;
+window.viewMarketplaceDetail = viewMarketplaceDetail;
+window.openAssignInspectorMkt = openAssignInspectorMkt;
+window.openUpdateStatus = openUpdateStatus;
+
+console.log('✅ Dashboard Admin JS fully loaded');
+console.log('✅ openAssignInspector type:', typeof window.openAssignInspector);
+console.log('✅ saveInspectorAssignment type:', typeof window.saveInspectorAssignment);
+console.log('✅ openAssignInspector:', window.openAssignInspector);
+

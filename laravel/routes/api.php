@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\InspectionController;
 use App\Http\Controllers\Api\CarPriceController;
+use App\Http\Controllers\Api\MarketplaceController;
 
 // ADMIN
 use App\Http\Controllers\Admin\InspectionController as AdminInspectionController;
@@ -31,6 +32,8 @@ Route::prefix('auth')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('inspections', [InspectionController::class, 'store']);
     Route::get('inspections', [InspectionController::class, 'index']);
+    Route::get('inspections/{id}', [InspectionController::class, 'show']);
+    Route::get('inspections/{id}/report', [InspectionController::class, 'report']);
 });
 
 
@@ -58,6 +61,8 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/inspections/{id}/status', [AdminInspectionController::class, 'updateStatus']);
     Route::get('/inspections/{id}/report', [AdminInspectionController::class, 'downloadReport']);
 
+    Route::get('/mechanics', [UserController::class, 'mechanics']);
+
     // Reports
     Route::get('/reports/summary', [ReportController::class, 'summary']);
     Route::get('/reports/export', [ReportController::class, 'export']);
@@ -67,6 +72,17 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/users/{id}', [UserController::class, 'show']);
 });
 
+
+// ---------------- MARKETPLACE (PUBLIC) ----------------
+Route::get('/marketplace/vehicles', [MarketplaceController::class, 'vehicles']);
+Route::get('/marketplace/vehicles/{id}', [MarketplaceController::class, 'vehicleDetail']);
+
+// ---------------- MARKETPLACE (AUTH USER) ----------------
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/marketplace/seller/listings', [MarketplaceController::class, 'sellerListings']);
+    Route::post('/marketplace/seller/listings', [MarketplaceController::class, 'createListing']);
+    Route::post('/marketplace/checkout', [MarketplaceController::class, 'checkout']);
+});
 
 // ---------------- PRICE PREDICTIONS ----------------
 Route::get('/car-price/form-options', [CarPriceController::class, 'formOptions']);

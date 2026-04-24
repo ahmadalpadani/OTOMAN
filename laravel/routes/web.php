@@ -7,6 +7,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/home', function () {
+    return redirect('/');
+})->name('home');
+
+Route::get('/login', function () {
+    return redirect('/');
+})->name('login');
+
 Route::post('/admin/login', [AdminAuthController::class, 'login']);
 
 Route::middleware(['auth', 'admin'])->get('/admin/dashboard', function () {

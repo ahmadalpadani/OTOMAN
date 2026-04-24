@@ -31,7 +31,7 @@ services:
       DB_PORT: 3306
       DB_DATABASE: otoman
       DB_USERNAME: otoman
-      DB_PASSWORD: otomanpass
+      DB_PASSWORD: secret
 
       # Optional tapi membantu kalau kamu pakai session/cache/queue database
       SESSION_DRIVER: database

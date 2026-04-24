@@ -13,9 +13,7 @@ class InspectionController extends Controller
         $user = auth()->user();
 
         $query = Inspection::with('user')
-            ->whereHas('mechanic', fn($q) =>
-                $q->where('user_id', $user->id)
-            );
+            ->where('mechanic_id', $user->id);
 
         if ($request->status) {
             $query->where('status', $request->status);
@@ -24,7 +22,10 @@ class InspectionController extends Controller
         $data = $query->paginate($request->limit ?? 10);
 
         return [
-            'inspections' => $data->items(),
+            'inspections' => collect($data->items())->map(fn($insp) => array_merge($insp->toArray(), [
+                'vehicle_brand' => $insp->brand,
+                'vehicle_model' => $insp->model,
+            ])),
             'pagination' => [
                 'current_page' => $data->currentPage(),
                 'total_pages' => $data->lastPage(),
@@ -36,28 +37,35 @@ class InspectionController extends Controller
 
     public function show($id)
     {
+        $user = auth()->user();
         $inspection = Inspection::with(['user', 'mechanic'])->findOrFail($id);
 
-        if ($inspection->mechanic->user_id !== auth()->id()) {
+        // Only allow the assigned inspector to view
+        if ($inspection->mechanic_id !== $user->id) {
             abort(403, 'Unauthorized');
         }
 
-        return $inspection;
+        $arr = $inspection->toArray();
+        $arr['vehicle_brand'] = $arr['brand'];
+        $arr['vehicle_model'] = $arr['model'];
+        return $arr;
     }
 
     public function history(Request $request)
     {
         $user = auth()->user();
 
-        $query = Inspection::where('status', 'completed')
-            ->whereHas('mechanic', fn($q) =>
-                $q->where('user_id', $user->id)
-            );
+        $query = Inspection::with('user')
+            ->where('status', 'completed')
+            ->where('mechanic_id', $user->id);
 
         $data = $query->paginate($request->limit ?? 10);
 
         return [
-            'inspections' => $data->items(),
+            'inspections' => collect($data->items())->map(fn($insp) => array_merge($insp->toArray(), [
+                'vehicle_brand' => $insp->brand,
+                'vehicle_model' => $insp->model,
+            ])),
             'pagination' => [
                 'current_page' => $data->currentPage(),
                 'total_pages' => $data->lastPage(),
@@ -69,10 +77,11 @@ class InspectionController extends Controller
 
     public function stats()
     {
+        $user = auth()->user();
         return [
-            'assigned' => Inspection::count(),
-            'in_progress' => Inspection::where('status', 'in_progress')->count(),
-            'completed' => Inspection::where('status', 'completed')->count(),
+            'assigned' => Inspection::where('mechanic_id', $user->id)->count(),
+            'in_progress' => Inspection::where('mechanic_id', $user->id)->where('status', 'in_progress')->count(),
+            'completed' => Inspection::where('mechanic_id', $user->id)->where('status', 'completed')->count(),
         ];
     }
 
@@ -88,7 +97,7 @@ class InspectionController extends Controller
 
         $inspection = Inspection::findOrFail($id);
 
-        if ($inspection->mechanic->user_id !== auth()->id()) {
+        if ($inspection->mechanic_id !== auth()->id()) {
             abort(403);
         }
 

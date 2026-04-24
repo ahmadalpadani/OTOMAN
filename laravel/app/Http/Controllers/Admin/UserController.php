@@ -41,4 +41,11 @@ class UserController extends Controller
     {
         return User::findOrFail($id);
     }
+
+    public function mechanics()
+    {
+        return [
+            'mechanics' => User::where('role', 'inspector')->get(['id', 'name', 'email', 'phone'])
+        ];
+    }
 }

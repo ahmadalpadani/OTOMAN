@@ -54,6 +54,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="#listings" data-section="listings">
+                            <i class="bi bi-card-list"></i>
+                            <span>Iklan Saya</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="../price-estimation.html">
                             <i class="bi bi-calculator"></i>
                             <span>Taksasi Harga</span>
@@ -94,7 +100,10 @@
                 <div class="page-title">
                     <h4 class="mb-0" id="pageTitle">Dashboard</h4>
                 </div>
-                <div class="top-bar-actions">
+                <div class="top-bar-actions gap-2">
+                    <button class="btn btn-outline-warning btn-sm" id="quickListingBtn" onclick="window.location.href='../marketplace-listing.html'">
+                        <i class="bi bi-plus-circle me-1"></i>Pasang Iklan
+                    </button>
                     <button class="btn btn-primary btn-sm" id="quickInspectionBtn">
                         <i class="bi bi-plus-circle me-1"></i>Inspeksi Baru
                     </button>
@@ -169,7 +178,7 @@
                             <h5 class="card-title mb-0">
                                 <i class="bi bi-clock-history me-2"></i>Aktivitas Terbaru
                             </h5>
-                            <a href="#" class="btn btn-sm btn-outline-primary">Lihat Semua</a>
+                            <a href="#inspections" class="btn btn-sm btn-outline-primary" onclick="navigateToSection('inspections'); return false;">Lihat Semua</a>
                         </div>
                         <div class="card-body">
                             <div id="recentActivity" class="activity-list">
@@ -228,6 +237,67 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- Iklan Saya Section -->
+                <section id="listings-section" class="content-section">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-card-list me-2"></i>Daftar Iklan Saya
+                            </h5>
+                            <a href="../marketplace-listing.html" class="btn btn-warning btn-sm">
+                                <i class="bi bi-plus-circle me-1"></i>Pasang Iklan Baru
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <!-- Filter tabs -->
+                            <ul class="nav nav-pills mb-3" id="listingStatusTabs">
+                                <li class="nav-item">
+                                    <button class="nav-link active" data-filter="all" onclick="filterListings('all')">Semua</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-filter="pending" onclick="filterListings('pending')">Pending</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-filter="approved" onclick="filterListings('approved')">Approved</button>
+                                </li>
+                                <li class="nav-item">
+                                    <button class="nav-link" data-filter="rejected" onclick="filterListings('rejected')">Rejected</button>
+                                </li>
+                            </ul>
+
+                            <div id="listingsList">
+                                <!-- Listings loaded here -->
+                                <div class="text-center text-muted py-5" id="listingsLoading">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                    Memuat iklan...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Listing Detail Modal -->
+                <div class="modal fade" id="listingDetailModal" tabindex="-1" aria-labelledby="listingDetailModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="listingDetailModalLabel">
+                                    <i class="bi bi-car-front me-2"></i>Detail Iklan
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" style="max-height:70vh; overflow-y:auto;" id="listingDetailContent">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border spinner-border-sm text-primary me-2"></div>Memuat...
+                                </div>
+                            </div>
+                            <div class="modal-footer" id="listingDetailActions">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Profile Section -->
                 <section id="profile-section" class="content-section">

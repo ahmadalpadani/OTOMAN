@@ -60,6 +60,12 @@
                             <span>Laporan</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#marketplace" data-section="marketplace">
+                            <i class="bi bi-shop"></i>
+                            <span>Marketplace</span>
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
@@ -144,6 +150,28 @@
                                 <div class="stat-details">
                                     <h6 class="stat-label">Selesai</h6>
                                     <h3 class="stat-value" id="completedInspections">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="stat-card" style="background: #e67e22;">
+                                <div class="stat-icon">
+                                    <i class="bi bi-shop"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <h6 class="stat-label">Listing Marketplace</h6>
+                                    <h3 class="stat-value" id="totalMarketplaceListings">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="stat-card bg-secondary bg-gradient">
+                                <div class="stat-icon">
+                                    <i class="bi bi-hourglass-split"></i>
+                                </div>
+                                <div class="stat-details">
+                                    <h6 class="stat-label">Pending Review</h6>
+                                    <h3 class="stat-value" id="pendingMarketplace">0</h3>
                                 </div>
                             </div>
                         </div>
@@ -386,6 +414,86 @@
                     </div>
                 </section>
 
+                <!-- Marketplace Section -->
+                <section id="marketplace-section" class="content-section">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="stat-card bg-warning bg-gradient">
+                                <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                                <div class="stat-details">
+                                    <h6 class="stat-label">Pending Review</h6>
+                                    <h3 class="stat-value" id="mktPendingCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card bg-success bg-gradient">
+                                <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+                                <div class="stat-details">
+                                    <h6 class="stat-label">Dipublikasi</h6>
+                                    <h3 class="stat-value" id="mktApprovedCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card bg-danger bg-gradient">
+                                <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
+                                <div class="stat-details">
+                                    <h6 class="stat-label">Ditolak</h6>
+                                    <h3 class="stat-value" id="mktRejectedCount">0</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Listing Table -->
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <i class="bi bi-shop me-2"></i>Daftar Listing Marketplace
+                            </h5>
+                            <div class="d-flex gap-2">
+                                <select class="form-select form-select-sm" id="mktStatusFilter" style="width:auto;" onchange="loadMarketplaceListings()">
+                                    <option value="">Semua Status</option>
+                                    <option value="pending">Pending Review</option>
+                                    <option value="scheduled">Terjadwal</option>
+                                    <option value="approved">Dipublikasi</option>
+                                    <option value="rejected">Ditolak</option>
+                                </select>
+                                <input type="text" class="form-control form-control-sm" id="mktSearch" placeholder="Cari..." style="width:200px;">
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Kode</th>
+                                            <th>Kendaraan</th>
+                                            <th>Penjual</th>
+                                            <th>Harga</th>
+                                            <th>Status</th>
+                                            <th>Tanggal</th>
+                                            <th>Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="marketplaceListingsBody">
+                                        <tr>
+                                            <td colspan="7" class="text-center text-muted py-4">
+                                                <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+                                                Memuat data...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <nav>
+                                <ul class="pagination justify-content-center" id="marketplacePagination"></ul>
+                            </nav>
+                        </div>
+                    </div>
+                </section>
+
             </div>
         </main>
     </div>
@@ -477,6 +585,104 @@
 
     <!-- Bootstrap JS -->
     <script src="../js/bootstrap.bundle.min.js"></script>
+
+    <!-- Marketplace Listing Detail Modal -->
+    <div class="modal fade" id="marketplaceDetailModal" tabindex="-1" aria-labelledby="marketplaceDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="marketplaceDetailModalLabel">
+                        <i class="bi bi-shop me-2"></i>Detail Listing Marketplace
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="max-height:70vh; overflow-y:auto;">
+                    <div id="marketplaceDetailContent">
+                        <div class="text-center text-muted py-4">
+                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>Memuat...
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="marketplaceDetailActions"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Inspector Modal (Marketplace) -->
+    <div class="modal fade" id="assignInspectorModal" tabindex="-1" aria-labelledby="assignInspectorModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignInspectorModalLabel">
+                        <i class="bi bi-person-badge me-2"></i>Assign Inspector
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="assignInspectorForm">
+                        <input type="hidden" id="assignListingId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Pilih Inspector <span class="text-danger">*</span></label>
+                            <select class="form-select" id="assignInspectorSelect" required>
+                                <option value="">-- Pilih Inspector --</option>
+                            </select>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Tanggal <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="assignInspectionDate" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">Waktu <span class="text-danger">*</span></label>
+                                <select class="form-select" id="assignInspectionTime" required>
+                                    <option value="">-- Pilih --</option>
+                                    <option value="08:00-10:00">08:00 - 10:00</option>
+                                    <option value="10:00-12:00">10:00 - 12:00</option>
+                                    <option value="13:00-15:00">13:00 - 15:00</option>
+                                    <option value="15:00-17:00">15:00 - 17:00</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="saveAssignBtn" onclick="saveInspectorAssignment()">
+                        <i class="bi bi-check-lg me-2"></i>Assign
+                    </button>
+                </div>
+                <div id="assignResult" class="px-3 pb-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Listing Modal -->
+    <div class="modal fade" id="rejectListingModal" tabindex="-1" aria-labelledby="rejectListingModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="rejectListingModalLabel">
+                        <i class="bi bi-x-circle me-2"></i>Tolak Listing
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="rejectListingId">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="rejectListingNotes" rows="4" placeholder="Jelaskan alasan penolakan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmRejectListing()">
+                        <i class="bi bi-x-lg me-2"></i>Tolak Listing
+                    </button>
+                </div>
+                <div id="rejectResult" class="px-3 pb-3"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

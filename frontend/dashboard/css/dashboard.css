@@ -385,6 +385,11 @@ body {
     color: var(--primary-color);
 }
 
+.inspection-status.rejected {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
 .inspection-vehicle {
     font-weight: 600;
     color: #1f2937;

@@ -349,73 +349,18 @@
                 <p class="lead text-muted">Temukan kendaraan impian Anda yang telah melalui inspeksi menyeluruh</p>
             </div>
 
-            <div class="row g-4">
-                <!-- Car Listing 1 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="car-card">
-                        <div class="position-relative">
-                            <img src="Assets/Honda-Jazz.jpg" alt="Honda Jazz" class="card-img-top">
-                            <span class="badge bg-success position-absolute top-0 start-0 m-3">Verified</span>
-                        </div>
-                        <div class="card-body p-3">
-                            <h5 class="fw-bold mb-2">Honda Jazz RS 2021</h5>
-                            <p class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Jakarta Selatan</p>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="h5 mb-0 text-primary fw-bold">Rp 235.000.000</span>
-                                <small class="text-muted">25.000 km</small>
-                            </div>
-                            <a href="#" class="btn btn-primary w-100">
-                                <i class="bi bi-whatsapp me-2"></i>Hubungi Penjual
-                            </a>
-                        </div>
+            <div class="row g-4" id="marketplaceVehicleList">
+                <!-- Loaded dynamically via marketplace-landing.js -->
+                <div class="col-12 text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                </div>
-
-                <!-- Car Listing 2 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="car-card">
-                        <div class="position-relative">
-                            <img src="Assets/innova.png" width="500" alt="Toyota Innova" class="card-img-top">
-                            <span class="badge bg-success position-absolute top-0 start-0 m-3">Verified</span>
-                        </div>
-                        <div class="card-body p-3">
-                            <h5 class="fw-bold mb-2">Toyota Innova Reborn 2020</h5>
-                            <p class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Bandung</p>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="h5 mb-0 text-primary fw-bold">Rp 320.000.000</span>
-                                <small class="text-muted">45.000 km</small>
-                            </div>
-                            <a href="#" class="btn btn-primary w-100">
-                                <i class="bi bi-whatsapp me-2"></i>Hubungi Penjual
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Car Listing 3 -->
-                <div class="col-lg-4 col-md-6">
-                    <div class="car-card">
-                        <div class="position-relative">
-                            <img src="Assets/bmw-320i_2.jpg" width="500" alt="BMW 320i" class="card-img-top">
-                            <span class="badge bg-success position-absolute top-0 start-0 m-3">Verified</span>
-                        </div>
-                        <div class="card-body p-3">
-                            <h5 class="fw-bold mb-2">BMW 320i Sport 2019</h5>
-                            <p class="text-muted mb-2"><i class="bi bi-geo-alt me-1"></i>Surabaya</p>
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="h5 mb-0 text-primary fw-bold">Rp 525.000.000</span>
-                                <small class="text-muted">35.000 km</small>
-                            </div>
-                            <a href="#" class="btn btn-primary w-100">
-                                <i class="bi bi-whatsapp me-2"></i>Hubungi Penjual
-                            </a>
-                        </div>
-                    </div>
+                    <p class="text-muted mt-3">Memuat kendaraan terverifikasi...</p>
                 </div>
             </div>
 
             <div class="text-center mt-5">
-                <a href="#" class="btn btn-outline-primary btn-lg">Lihat Semua Kendaraan</a>
+                <a href="marketplace-detail.html" class="btn btn-outline-primary btn-lg">Lihat Semua Kendaraan</a>
             </div>
         </div>
     </section>
@@ -557,6 +502,12 @@
 
     <!-- App JavaScript -->
     <script src="js/app.js"></script>
+
+    <!-- API JS -->
+    <script src="js/api.js"></script>
+
+    <!-- Marketplace Landing JS -->
+    <script src="js/marketplace-landing.js"></script>
 
     <!-- Landing Page JavaScript -->
     <script src="js/landing.js"></script>

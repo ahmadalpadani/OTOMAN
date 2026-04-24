@@ -1,5 +1,7 @@
 // Inspection Form JavaScript
 
+const API_BASE_URL = 'http://localhost:8000/api';
+
 document.addEventListener('DOMContentLoaded', function () {
   try {
     // Check authentication
@@ -570,15 +572,45 @@ async function submitInspection() {
     }
 
     try {
-      const res = await apiPost('/inspections', formData, { auth: true });
+      // Use raw fetch with FormData to support file upload (payment_proof)
+      // Backend store() currently doesn't handle files — this prepares for future multipart support
+      const token = getToken();
+      const payload = new FormData();
+      Object.entries(formData).forEach(([key, val]) => {
+        if (key !== 'payment_proof' && val !== undefined && val !== null) {
+          payload.append(key, val);
+        }
+      });
+      // Attach file if present
+      if (formData.payment_proof) {
+        payload.append('payment_proof', formData.payment_proof);
+      }
 
-      const orderCode = res?.data?.order_code || '-';
+      const response = await fetch(`${API_BASE_URL}/inspections`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token || ''}`,
+          'Accept': 'application/json'
+          // NOTE: Do NOT set Content-Type for FormData — browser sets it with boundary
+        },
+        body: payload
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || errData.errors ? Object.values(errData.errors).flat().join(', ') : 'Gagal membuat pesanan');
+      }
+
+      const res = await response.json();
+      // Backend returns { message, data: inspection }
+      const inspection = res?.data || res;
+      const orderCode = inspection?.order_code || '-';
       const orderEl = document.getElementById('orderCode');
       if (orderEl) orderEl.textContent = orderCode;
 
-      if (res?.data?.price != null) {
+      if (inspection?.price != null) {
         const priceEl = document.getElementById('summaryPrice');
-        if (priceEl) priceEl.textContent = 'Rp ' + Number(res.data.price).toLocaleString('id-ID');
+        if (priceEl) priceEl.textContent = 'Rp ' + Number(inspection.price).toLocaleString('id-ID');
       }
 
       document.querySelectorAll('.form-step').forEach((step) => step.classList.remove('active'));

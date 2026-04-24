@@ -94,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'overview': 'Dashboard',
                     'inspections': 'Inspeksi Saya',
                     'marketplace': 'Marketplace',
+                    'listings': 'Iklan Saya',
                     'profile': 'Profil Saya'
                 };
                 pageTitle.textContent = titles[targetSection] || 'Dashboard';
@@ -125,6 +126,17 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Navigate to a section programmatically (used by "Lihat Semua" button)
+    function navigateToSection(sectionName) {
+        const navLink = document.querySelector(`.sidebar-nav .nav-link[data-section="${sectionName}"]`);
+        if (navLink) {
+            navLink.click();
+        }
+    }
+    window.navigateToSection = navigateToSection;
+    window.filterListings = filterListings;
+    window.loadListings = loadListings;
 
     function loadUserData() {
         const user = getUser();
@@ -180,8 +192,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Load inspections data from API
             const response = await apiGet('/inspections');
 
-            // Handle pagination response
-            const inspections = response.data?.data || [];
+            // Handle pagination response (backend returns { message, data: { data: [...], ... } })
+            const inspections = response?.data?.data || [];
 
             // Calculate statistics
             const totalInspections = inspections.length;
@@ -211,8 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Load inspections from API
             const response = await apiGet('/inspections');
 
-            // Handle pagination response
-            const inspections = response.data?.data || [];
+            // Handle pagination response (backend returns { message, data: { data: [...], ... } })
+            const inspections = response?.data?.data || [];
             const activityContainer = document.getElementById('recentActivity');
 
             if (!activityContainer) return;
@@ -236,13 +248,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const statusClass = {
                     'pending': 'warning',
                     'in_progress': 'primary',
-                    'completed': 'success'
+                    'completed': 'success',
+                    'rejected': 'danger'
                 }[inspection.status] || 'secondary';
 
                 const statusLabel = {
                     'pending': 'Menunggu',
                     'in_progress': 'Dalam Proses',
-                    'completed': 'Selesai'
+                    'completed': 'Selesai',
+                    'rejected': 'Ditolak'
                 }[inspection.status] || 'Unknown';
 
                 const typeIcon = inspection.vehicle_type === 'mobil' ? 'bi-car-front' : 'bi-bicycle';
@@ -288,6 +302,9 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'marketplace':
                 await loadMarketplace();
                 break;
+            case 'listings':
+                await loadListings();
+                break;
         }
     }
 
@@ -301,8 +318,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await apiGet('/inspections');
             console.log('[Dashboard] API Response:', response);
 
-            // Handle pagination response
-            const inspections = response.data?.data || [];
+            // Handle pagination response (backend returns { message, data: { data: [...], ... } })
+            const inspections = response?.data?.data || [];
             console.log('[Dashboard] Inspections count:', inspections.length);
             console.log('[Dashboard] Inspections data:', inspections);
 
@@ -350,13 +367,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusClass = {
             'pending': 'pending',
             'in_progress': 'in_progress',
-            'completed': 'completed'
+            'completed': 'completed',
+            'rejected': 'rejected'
         }[inspection.status] || 'pending';
 
         const statusLabel = {
             'pending': 'Menunggu',
             'in_progress': 'Dalam Proses',
-            'completed': 'Selesai'
+            'completed': 'Selesai',
+            'rejected': 'Ditolak'
         }[inspection.status] || 'Menunggu';
 
         const typeIcon = inspection.vehicle_type === 'mobil' ? 'bi-car-front' : 'bi-bicycle';
@@ -408,13 +427,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusClass = {
             'pending': 'warning',
             'in_progress': 'primary',
-            'completed': 'success'
+            'completed': 'success',
+            'rejected': 'danger'
         }[inspection.status] || 'secondary';
 
         const statusLabel = {
-            'pending': 'Menunggu Jadwal',
+            'pending': 'Menunggu Konfirmasi',
             'in_progress': 'Inspeksi Sedang Berlangsung',
-            'completed': 'Inspeksi Selesai'
+            'completed': 'Inspeksi Selesai',
+            'rejected': 'Ditolak'
         }[inspection.status] || 'Unknown';
 
         const conditionLabels = {
@@ -528,16 +549,508 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
+
+            ${inspection.mechanic_id ? `
+            <!-- Inspector Info -->
+            <div class="detail-section mb-4">
+                <h6 class="detail-section-title">
+                    <i class="bi bi-person-badge me-2"></i>Inspector
+                </h6>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Nama</span>
+                        <span class="detail-value fw-bold">${inspection.mechanic?.name || '-'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">No. Telepon</span>
+                        <span class="detail-value">${inspection.mechanic?.phone || '-'}</span>
+                    </div>
+                    ${inspection.scheduled_date ? `
+                    <div class="detail-item">
+                        <span class="detail-label">Jadwal Inspeksi</span>
+                        <span class="detail-value">${formatDateIndo(inspection.scheduled_date)}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Jam</span>
+                        <span class="detail-value">${inspection.scheduled_time}</span>
+                    </div>
+                    ` : ''}
+                </div>
+            </div>
+            ` : `
+            ${inspection.status === 'pending' ? `
+            <!-- Waiting for Assignment -->
+            <div class="alert alert-warning mb-4">
+                <i class="bi bi-hourglass-split me-2"></i>
+                <strong>Menunggu konfirmasi admin.</strong> Inspector akan segera ditugaskan.
+            </div>
+            ` : ''}
+            `}
+
+            ${inspection.admin_notes ? `
+            <!-- Admin Notes -->
+            <div class="detail-section mb-4">
+                <h6 class="detail-section-title">
+                    <i class="bi bi-sticky me-2"></i>Catatan Admin
+                </h6>
+                <div class="alert alert-secondary mb-0">
+                    ${inspection.admin_notes}
+                </div>
+            </div>
+            ` : ''}
+
+            ${inspection.payment_proof_path ? `
+            <!-- Payment Proof -->
+            <div class="detail-section mb-4">
+                <h6 class="detail-section-title">
+                    <i class="bi bi-receipt me-2"></i>Bukti Pembayaran
+                </h6>
+                <div class="bg-light p-3 rounded">
+                    <div class="d-flex align-items-start gap-3">
+                        ${inspection.payment_proof_path.match(/\.(jpg|jpeg|png|gif)$/i)
+                            ? `<img src="${STORAGE_BASE}/storage/${inspection.payment_proof_path}" alt="Bukti Pembayaran" class="img-thumbnail" style="max-width: 200px; max-height: 200px; cursor: pointer;" onclick="window.open('${STORAGE_BASE}/storage/${inspection.payment_proof_path}', '_blank')">`
+                            : `<a href="${STORAGE_BASE}/storage/${inspection.payment_proof_path}" target="_blank" class="btn btn-outline-primary btn-sm"><i class="bi bi-file-earmark-arrow-down me-1"></i>Download Bukti Bayar</a>`
+                        }
+                        <div>
+                            <p class="mb-1"><strong>${inspection.payment_status === 'paid' ? 'Lunas' : inspection.payment_status}</strong></p>
+                            <p class="mb-0 text-muted small">Klik gambar untuk memperbesar</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            ` : `
+            ${inspection.payment_status === 'unpaid' ? `
+            <div class="alert alert-warning mb-4">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Belum ada bukti pembayaran.</strong> Silakan upload bukti transfer.
+            </div>
+            ` : ''}
+            `}
         `;
 
-        // Hide download button (only for completed inspections with inspection data)
+        // Show download button only for completed inspections
         if (downloadBtn) {
-            downloadBtn.style.display = 'none';
+            downloadBtn.style.display = inspection.status === 'completed' ? 'inline-block' : 'none';
+            downloadBtn.onclick = () => downloadInspectionReport(inspection.id);
         }
 
         // Show modal
         const bsModal = new bootstrap.Modal(modal);
         bsModal.show();
+    }
+
+    // Download inspection report
+    async function downloadInspectionReport(inspectionId) {
+        const btn = document.getElementById('downloadReportBtn');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memuat...';
+
+        try {
+            const report = await apiGet(`/inspections/${inspectionId}/report`);
+
+            // Open report in new window for printing/download
+            const reportWindow = window.open('', '_blank');
+
+            if (!reportWindow) {
+                // Popup blocked - show in current page instead
+                const printContent = generateReportHTML(report);
+                const printWindow = window.open('', '_blank', 'width=800,height=600');
+                if (printWindow) {
+                    printWindow.document.write(printContent);
+                    printWindow.document.close();
+                } else {
+                    // Fallback: show in a modal
+                    showReportModal(report);
+                }
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                return;
+            }
+
+            reportWindow.document.write(`
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laporan Inspeksi - ${report.order_code}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: auto; }
+        h1 { text-align: center; color: #333; }
+        h2 { color: #555; border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-top: 30px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .order-code { font-size: 24px; font-weight: bold; color: #0d6efd; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .card.full { grid-column: 1 / -1; }
+        .label { color: #666; font-size: 12px; text-transform: uppercase; }
+        .value { font-size: 16px; font-weight: 500; }
+        .result-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+        .result-approve { background: #d1e7dd; color: #0f5132; }
+        .result-pending { background: #fff3cd; color: #664d03; }
+        .result-reject { background: #f8d7da; color: #842029; }
+        .footer { text-align: center; margin-top: 40px; color: #999; font-size: 12px; }
+        @media print { button { display: none; } }
+    </style>
+</head>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laporan Inspeksi - ${report.order_code}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: auto; }
+        h1 { text-align: center; color: #333; }
+        h2 { color: #555; border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-top: 30px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .order-code { font-size: 24px; font-weight: bold; color: #0d6efd; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .card.full { grid-column: 1 / -1; }
+        .label { color: #666; font-size: 12px; text-transform: uppercase; }
+        .value { font-size: 16px; font-weight: 500; }
+        .result-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+        .result-approve { background: #d1e7dd; color: #0f5132; }
+        .result-pending { background: #fff3cd; color: #664d03; }
+        .result-reject { background: #f8d7da; color: #842029; }
+        .footer { text-align: center; margin-top: 40px; color: #999; font-size: 12px; }
+        @media print { button { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LAPORAN HASIL INSPEKSI KENDARAAN</h1>
+        <div class="order-code">${report.order_code}</div>
+    </div>
+
+    <h2>Informasi Umum</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Tanggal Inspeksi</div>
+            <div class="value">${report.inspection_date} ${report.inspection_time}</div>
+        </div>
+        <div class="card">
+            <div class="label">Hasil Inspeksi</div>
+            <div class="value">
+                <span class="result-badge result-${report.result?.status?.toLowerCase()}">${report.result?.status}</span>
+            </div>
+        </div>
+    </div>
+
+    <h2>Data Customer</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Nama</div>
+            <div class="value">${report.user?.name || '-'}</div>
+        </div>
+        <div class="card">
+            <div class="label">Telepon</div>
+            <div class="value">${report.user?.phone || '-'}</div>
+        </div>
+        <div class="card full">
+            <div class="label">Email</div>
+            <div class="value">${report.user?.email || '-'}</div>
+        </div>
+    </div>
+
+    <h2>Data Kendaraan</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Tipe</div>
+            <div class="value">${report.vehicle?.type}</div>
+        </div>
+        <div class="card">
+            <div class="label">Merek / Model</div>
+            <div class="value">${report.vehicle?.brand} ${report.vehicle?.model}</div>
+        </div>
+        <div class="card">
+            <div class="label">Tahun</div>
+            <div class="value">${report.vehicle?.year}</div>
+        </div>
+        <div class="card">
+            <div class="label">No. Plat</div>
+            <div class="value">${report.vehicle?.license_plate || '-'}</div>
+        </div>
+        <div class="card">
+            <div class="label">Jarak Tempuh</div>
+            <div class="value">${Number(report.vehicle?.mileage || 0).toLocaleString('id-ID')} km</div>
+        </div>
+        <div class="card">
+            <div class="label">Kondisi Umum</div>
+            <div class="value">${report.vehicle?.condition}</div>
+        </div>
+    </div>
+
+    <h2>Lokasi Inspeksi</h2>
+    <div class="card full">
+        <div class="value">${report.location?.address}<br>${report.location?.city}, ${report.location?.province}</div>
+    </div>
+
+    ${report.mechanic ? `
+    <h2>Inspector</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Nama</div>
+            <div class="value">${report.mechanic.name}</div>
+        </div>
+        <div class="card">
+            <div class="label">Jadwal</div>
+            <div class="value">${report.scheduled_date} ${report.scheduled_time}</div>
+        </div>
+    </div>
+    ` : ''}
+
+    <h2>Hasil Pemeriksaan</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Body / Exterior</div>
+            <div class="value">${report.result?.body_condition}</div>
+        </div>
+        <div class="card">
+            <div class="label">Mesin / Engine</div>
+            <div class="value">${report.result?.engine_condition}</div>
+        </div>
+        <div class="card">
+            <div class="label">Interior</div>
+            <div class="value">${report.result?.interior_condition}</div>
+        </div>
+        <div class="card">
+            <div class="label">Hasil Akhir</div>
+            <div class="value">
+                <span class="result-badge result-${report.result?.status?.toLowerCase()}">${report.result?.status}</span>
+            </div>
+        </div>
+        ${report.result?.notes ? `
+        <div class="card full">
+            <div class="label">Catatan</div>
+            <div class="value">${report.result.notes}</div>
+        </div>
+        ` : ''}
+    </div>
+
+    <h2>Pembayaran</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Metode</div>
+            <div class="value">${report.payment?.method}</div>
+        </div>
+        <div class="card">
+            <div class="label">Total</div>
+            <div class="value">Rp ${Number(report.payment?.price || 0).toLocaleString('id-ID')}</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Dokumen ini generated secara otomatis oleh sistem OTOMAN</p>
+        <p>${report.generated_at}</p>
+        <button onclick="window.print()" style="margin-top:20px;padding:10px 30px;font-size:16px;cursor:pointer;">
+            Cetak / Download PDF
+        </button>
+    </div>
+</body>
+</html>
+            `);
+            reportWindow.document.close();
+        } catch (error) {
+            console.error('Error downloading report:', error);
+            alert('Gagal memuat laporan: ' + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+
+    // Generate HTML for report
+    function generateReportHTML(report) {
+        const resultStatus = report.result?.status || '';
+        const resultClass = resultStatus.toLowerCase();
+        return `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laporan Inspeksi - ${report.order_code}</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: auto; }
+        h1 { text-align: center; color: #333; }
+        h2 { color: #555; border-bottom: 2px solid #ddd; padding-bottom: 8px; margin-top: 30px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .order-code { font-size: 24px; font-weight: bold; color: #0d6efd; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: #f8f9fa; padding: 15px; border-radius: 8px; }
+        .card.full { grid-column: 1 / -1; }
+        .label { color: #666; font-size: 12px; text-transform: uppercase; }
+        .value { font-size: 16px; font-weight: 500; }
+        .result-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: bold; }
+        .result-approve { background: #d1e7dd; color: #0f5132; }
+        .result-pending { background: #fff3cd; color: #664d03; }
+        .result-reject { background: #f8d7da; color: #842029; }
+        .footer { text-align: center; margin-top: 40px; color: #999; font-size: 12px; }
+        @media print { button { display: none; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LAPORAN HASIL INSPEKSI KENDARAAN</h1>
+        <div class="order-code">${report.order_code}</div>
+    </div>
+
+    <h2>Informasi Umum</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Tanggal Inspeksi</div>
+            <div class="value">${report.inspection_date} ${report.inspection_time}</div>
+        </div>
+        <div class="card">
+            <div class="label">Hasil Inspeksi</div>
+            <div class="value">
+                <span class="result-badge result-${resultClass}">${report.result?.status}</span>
+            </div>
+        </div>
+    </div>
+
+    <h2>Data Customer</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Nama</div>
+            <div class="value">${report.user?.name || '-'}</div>
+        </div>
+        <div class="card">
+            <div class="label">Telepon</div>
+            <div class="value">${report.user?.phone || '-'}</div>
+        </div>
+        <div class="card full">
+            <div class="label">Email</div>
+            <div class="value">${report.user?.email || '-'}</div>
+        </div>
+    </div>
+
+    <h2>Data Kendaraan</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Tipe</div>
+            <div class="value">${report.vehicle?.type}</div>
+        </div>
+        <div class="card">
+            <div class="label">Merek / Model</div>
+            <div class="value">${report.vehicle?.brand} ${report.vehicle?.model}</div>
+        </div>
+        <div class="card">
+            <div class="label">Tahun</div>
+            <div class="value">${report.vehicle?.year}</div>
+        </div>
+        <div class="card">
+            <div class="label">No. Plat</div>
+            <div class="value">${report.vehicle?.license_plate || '-'}</div>
+        </div>
+        <div class="card">
+            <div class="label">Jarak Tempuh</div>
+            <div class="value">${Number(report.vehicle?.mileage || 0).toLocaleString('id-ID')} km</div>
+        </div>
+        <div class="card">
+            <div class="label">Kondisi Umum</div>
+            <div class="value">${report.vehicle?.condition}</div>
+        </div>
+    </div>
+
+    <h2>Lokasi Inspeksi</h2>
+    <div class="card full">
+        <div class="value">${report.location?.address}<br>${report.location?.city}, ${report.location?.province}</div>
+    </div>
+
+    ${report.mechanic ? `
+    <h2>Inspector</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Nama</div>
+            <div class="value">${report.mechanic.name}</div>
+        </div>
+        <div class="card">
+            <div class="label">Jadwal</div>
+            <div class="value">${report.scheduled_date} ${report.scheduled_time}</div>
+        </div>
+    </div>
+    ` : ''}
+
+    <h2>Hasil Pemeriksaan</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Body / Exterior</div>
+            <div class="value">${report.result?.body_condition}</div>
+        </div>
+        <div class="card">
+            <div class="label">Mesin / Engine</div>
+            <div class="value">${report.result?.engine_condition}</div>
+        </div>
+        <div class="card">
+            <div class="label">Interior</div>
+            <div class="value">${report.result?.interior_condition}</div>
+        </div>
+        <div class="card">
+            <div class="label">Hasil Akhir</div>
+            <div class="value">
+                <span class="result-badge result-${resultClass}">${report.result?.status}</span>
+            </div>
+        </div>
+        ${report.result?.notes ? `
+        <div class="card full">
+            <div class="label">Catatan</div>
+            <div class="value">${report.result.notes}</div>
+        </div>
+        ` : ''}
+    </div>
+
+    <h2>Pembayaran</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="label">Metode</div>
+            <div class="value">${report.payment?.method}</div>
+        </div>
+        <div class="card">
+            <div class="label">Total</div>
+            <div class="value">Rp ${Number(report.payment?.price || 0).toLocaleString('id-ID')}</div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Dokumen ini generated secara otomatis oleh sistem OTOMAN</p>
+        <p>${report.generated_at}</p>
+        <button onclick="window.print()" style="margin-top:20px;padding:10px 30px;font-size:16px;cursor:pointer;">
+            Cetak / Download PDF
+        </button>
+    </div>
+</body>
+</html>`;
+    }
+
+    // Show report in a modal when popup is blocked
+    function showReportModal(report) {
+        const html = `
+<div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-text me-2"></i>Laporan Inspeksi - ${report.order_code}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="background:#f8f9fa;">
+                <iframe id="reportIframe" style="width:100%;height:70vh;border:none;"></iframe>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('reportIframe').contentWindow.print()">
+                    <i class="bi bi-printer me-2"></i>Cetak / Download PDF
+                </button>
+            </div>
+        </div>
+    </div>
+</div>`;
+
+        document.getElementById('reportModal')?.remove();
+        document.body.insertAdjacentHTML('beforeend', html);
+
+        const iframe = document.getElementById('reportIframe');
+        iframe.srcdoc = generateReportHTML(report);
+
+        new bootstrap.Modal(document.getElementById('reportModal')).show();
     }
 
     function formatDateIndo(dateString) {
@@ -590,6 +1103,182 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             `;
         }
+    }
+
+    // ============================
+    // SELLER LISTINGS
+    // ============================
+    let allListings = [];
+    let currentListingFilter = 'all';
+
+    const LISTING_STATUS_BADGES = {
+        'pending': { label: 'Menunggu', class: 'bg-warning text-dark' },
+        'scheduled': { label: 'Terjadwal', class: 'bg-info' },
+        'in_progress': { label: 'Inspeksi Berlangsung', class: 'bg-primary' },
+        'approved': { label: 'Dipublikasi', class: 'bg-success' },
+        'rejected': { label: 'Ditolak', class: 'bg-danger' },
+        'sold': { label: 'Terjual', class: 'bg-secondary' }
+    };
+
+    function getListingBadge(status) {
+        const config = LISTING_STATUS_BADGES[status] || { label: status, class: 'bg-secondary' };
+        return `<span class="badge ${config.class}">${config.label}</span>`;
+    }
+
+    async function loadListings(filter = 'all') {
+        const container = document.getElementById('listingsList');
+        if (!container) return;
+
+        document.getElementById('listingsLoading')?.remove();
+
+        try {
+            const response = await apiGet('/marketplace/seller/listings');
+            console.log('[Listings] Full API response:', JSON.stringify(response));
+            const listings = Array.isArray(response) ? response : (response?.data || []);
+            console.log('[Listings] Parsed listings count:', listings.length);
+            allListings = listings;
+            renderListings(listings, filter);
+        } catch (error) {
+            console.error('[Listings] Error loading listings:', error);
+            renderListings([], filter);
+        }
+    }
+
+    function renderListings(listings, filter) {
+        const container = document.getElementById('listingsList');
+        if (!container) return;
+
+        const filtered = filter === 'all' ? listings : listings.filter(l => l.status === filter);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-card-list fs-1"></i>
+                    <p class="mt-3">Belum ada iklan${filter !== 'all' ? ' dengan status ini' : ''}</p>
+                    <a href="../marketplace-listing.html" class="btn btn-warning btn-sm">Pasang Iklan Sekarang</a>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = filtered.map(l => createListingCard(l)).join('');
+    }
+
+    function filterListings(filter) {
+        currentListingFilter = filter;
+        document.querySelectorAll('#listingStatusTabs .nav-link').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === filter);
+        });
+        renderListings(allListings, filter);
+    }
+
+    function showListingDetail(listing) {
+        const content = document.getElementById('listingDetailContent');
+        const actions = document.getElementById('listingDetailActions');
+        const STORAGE_BASE = window.STORAGE_BASE || 'http://localhost:8000';
+
+        const images = listing.images || [];
+        const thumb = listing.thumbnail_url
+            ? (listing.thumbnail_url.startsWith('http')
+                ? listing.thumbnail_url
+                : `${STORAGE_BASE}${listing.thumbnail_url}`)
+            : '';
+
+        const statusMap = {
+            pending: ['<span class="badge bg-warning">Pending</span>', 'Menunggu Inspeksi'],
+            scheduled: ['<span class="badge bg-info">Terjadwal</span>', 'Dijadwalkan'],
+            assigned: ['<span class="badge bg-primary">Ditugaskan</span>', 'Sudah Ditugaskan'],
+            in_progress: ['<span class="badge bg-primary">Sedang Inspeksi</span>', 'Sedang Inspeksi'],
+            completed: ['<span class="badge bg-success">Selesai</span>', 'Selesai'],
+            rejected: ['<span class="badge bg-danger">Ditolak</span>', 'Ditolak'],
+        };
+        const [badge] = statusMap[listing.status] || ['<span class="badge bg-secondary">-</span>', '-'];
+
+        const priceDisplay = listing.vehicle_price
+            ? 'Rp ' + Number(listing.vehicle_price).toLocaleString('id-ID')
+            : '-';
+
+        let photoGallery = '';
+        if (images.length) {
+            photoGallery = `
+            <div class="mb-3">
+                <label class="fw-semibold small text-muted">Foto Kendaraan</label>
+                <div class="d-flex flex-wrap gap-2 mt-1">
+                    ${images.map((img, i) => {
+                        const src = img.startsWith('http') ? img : `${STORAGE_BASE}${img}`;
+                        return `<img src="${src}" class="rounded" style="width:80px;height:80px;object-fit:cover;border:2px solid #dee2e6;cursor:pointer;" onclick="window.open('${src}','_blank')" title="Foto ${i+1}">`;
+                    }).join('')}
+                </div>
+            </div>`;
+        } else {
+            photoGallery = `<div class="text-muted small mb-3"><i class="bi bi-image"></i> Tidak ada foto</div>`;
+        }
+
+        content.innerHTML = `
+            ${photoGallery}
+            <div class="row g-3">
+                <div class="col-6"><label class="fw-semibold small text-muted">Kode</label><div class="fw-semibold text-primary">${listing.order_code || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Status</label><div>${badge}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Merek</label><div>${listing.vehicle_brand || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Model</label><div>${listing.vehicle_model || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Tahun</label><div>${listing.vehicle_year || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Plat</label><div>${listing.license_plate || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Jarak Tempuh</label><div>${listing.mileage ? Number(listing.mileage).toLocaleString('id-ID') + ' km' : '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Harga Jual</label><div class="fw-semibold text-success">${priceDisplay}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Tanggal Inspeksi</label><div>${listing.inspection_date || '-'}</div></div>
+                <div class="col-6"><label class="fw-semibold small text-muted">Waktu</label><div>${listing.inspection_time || '-'}</div></div>
+                <div class="col-12"><label class="fw-semibold small text-muted">Lokasi</label><div>${listing.city || ''}, ${listing.province || ''}</div></div>
+                ${listing.inspection_result ? `<div class="col-12"><label class="fw-semibold small text-muted">Hasil Inspeksi</label><div class="fw-semibold ${listing.inspection_result === 'approve' ? 'text-success' : 'text-danger'}">${listing.inspection_result === 'approve' ? 'Disetujui' : 'Ditolak'}</div></div>` : ''}
+            </div>`;
+
+        actions.innerHTML = '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>';
+
+        new bootstrap.Modal(document.getElementById('listingDetailModal')).show();
+    }
+
+    function createListingCard(listing) {
+        const priceDisplay = new Intl.NumberFormat('id-ID', {
+            style: 'currency', currency: 'IDR', maximumFractionDigits: 0
+        }).format(listing.vehicle_price || 0);
+
+        const mileageDisplay = Number(listing.mileage || 0).toLocaleString('id-ID') + ' km';
+        const image = listing.thumbnail_url
+            ? (listing.thumbnail_url.startsWith('http') ? listing.thumbnail_url : `${window.STORAGE_BASE || 'http://localhost:8000'}${listing.thumbnail_url}`)
+            : 'https://placehold.co/80x60?text=No+Image';
+        const date = listing.created_at
+            ? new Date(listing.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+            : '-';
+        const badge = getListingBadge(listing.status);
+
+        const detailUrl = `../marketplace-listing.html?id=${listing.id}&view=detail`;
+
+        return `
+            <div class="listing-card border rounded p-3 mb-3" style="display:flex; gap:1rem; align-items:center;">
+                <img src="${image}" alt="${listing.vehicle_brand} ${listing.vehicle_model}"
+                     style="width:80px; height:60px; object-fit:cover; border-radius:8px; flex-shrink:0;"
+                     onerror="this.src='https://placehold.co/80x60?text=No+Image'">
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-start justify-content-between gap-2">
+                        <div>
+                            <h6 class="mb-1 fw-bold">${listing.vehicle_brand} ${listing.vehicle_model} ${listing.vehicle_year || ''}</h6>
+                            <p class="mb-1 small text-muted">
+                                <i class="bi bi-credit-card-2-front me-1"></i>${listing.license_plate || '-'}
+                                &nbsp;
+                                <i class="bi bi-speedometer2 me-1"></i>${mileageDisplay}
+                            </p>
+                            <p class="mb-1 small text-muted">
+                                <i class="bi bi-calendar3 me-1"></i>${date}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <div class="mb-1 fw-bold text-primary" style="white-space:nowrap;">${priceDisplay}</div>
+                            <div class="mb-2">${badge}</div>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="showListingDetail(window.allListings.find(l=>l.id===${listing.id}))"><i class="bi bi-eye me-1"></i>Detail</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     function initializeProfileForm() {

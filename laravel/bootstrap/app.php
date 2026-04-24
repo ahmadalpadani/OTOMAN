@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // 🔥 REGISTER MIDDLEWARE DI SINI
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'auth' => \App\Http\Middleware\Authenticate::class,
 
             // TAMBAHAN KITA 👇
             'admin' => \App\Http\Middleware\AdminMiddleware::class,

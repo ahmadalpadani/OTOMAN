@@ -39,6 +39,7 @@ function resolveApiBase() {
 }
 
 const API_BASE = resolveApiBase();
+const STORAGE_BASE = API_BASE.replace('/api', ''); // http://localhost:8000
 
 // ---------- AUTH STORAGE ----------
 const TOKEN_KEY = "otoman_token";
@@ -154,6 +155,8 @@ async function request(method, path, payload, opts = {}) {
     if (res.status === 401) {
       clearAuth();
       if (typeof onUnauthorized === "function") onUnauthorized();
+      // Auto redirect to login
+      window.location.href = "../index.html";
     }
 
     const msg = extractErrorMessage(parsed);
@@ -191,6 +194,7 @@ async function apiDelete(path, payload, opts = {}) {
 // ---------- EXPOSE ----------
 if (typeof window !== "undefined") {
   window.API_BASE_RESOLVED = API_BASE;
+  window.STORAGE_BASE = STORAGE_BASE;
   window.clearAuth = clearAuth;
   window.saveAuth = saveAuth;
   window.getToken = getToken;

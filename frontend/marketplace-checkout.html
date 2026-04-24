@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout Inspeksi - OTOMAN</title>
+    <meta name="description" content="Checkout pesanan inspeksi kendaraan bekas">
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        .checkout-page {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        .checkout-header {
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 0;
+        }
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+        }
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 0 1.5rem;
+            position: relative;
+        }
+        .step-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -1.5rem;
+            top: 14px;
+            width: 1.5rem;
+            height: 2px;
+            background: #dee2e6;
+        }
+        .step-item.active::after,
+        .step-item.completed::after {
+            background: #0d6efd;
+        }
+        .step-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #dee2e6;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+        }
+        .step-item.active .step-circle {
+            background: #fff;
+            color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .step-item.completed .step-circle {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+        .step-label {
+            font-size: 0.7rem;
+            color: #6c757d;
+            white-space: nowrap;
+        }
+        .step-item.active .step-label {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+        .checkout-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .checkout-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .payment-method-card {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .payment-method-card:hover {
+            border-color: #0d6efd;
+            background: #f8f9ff;
+        }
+        .payment-method-card.selected {
+            border-color: #0d6efd;
+            background: #f0f6ff;
+        }
+        .payment-method-card input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #0d6efd;
+        }
+        .payment-method-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.65rem;
+            color: #fff;
+        }
+        .order-summary-table {
+            width: 100%;
+        }
+        .order-summary-table tr td {
+            padding: 0.5rem 0;
+            vertical-align: top;
+        }
+        .order-summary-table tr td:last-child {
+            text-align: right;
+        }
+        .total-row {
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-top: 2px solid #dee2e6;
+        }
+        .total-row td {
+            padding-top: 0.75rem !important;
+        }
+        .countdown-timer {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+        }
+        .va-number-box {
+            background: #f8f9fa;
+            border: 1px dashed #adb5bd;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+        .copy-btn {
+            cursor: pointer;
+            color: #0d6efd;
+            font-size: 1.2rem;
+        }
+        @media (max-width: 767px) {
+            .step-item {
+                padding: 0 0.75rem;
+            }
+            .step-item:not(:last-child)::after {
+                width: 0.75rem;
+                right: -0.75rem;
+            }
+            .step-label {
+                font-size: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body class="checkout-page">
+
+    <!-- Header -->
+    <div class="checkout-header">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between">
+                <a href="index.html" class="text-decoration-none text-dark fw-bold">
+                    <i class="bi bi-arrow-left me-2"></i>
+                    <i class="bi bi-car-front-fill me-1 text-primary"></i>OTOMAN
+                </a>
+
+                <!-- Step Indicator -->
+                <div class="step-indicator">
+                    <div class="step-item active" id="stepItem1">
+                        <div class="step-circle">1</div>
+                        <span class="step-label">Detail Mobil</span>
+                    </div>
+                    <div class="step-item" id="stepItem2">
+                        <div class="step-circle">2</div>
+                        <span class="step-label">Inspeksi</span>
+                    </div>
+                    <div class="step-item" id="stepItem3">
+                        <div class="step-circle">3</div>
+                        <span class="step-label">Bayar</span>
+                    </div>
+                    <div class="step-item" id="stepItem4">
+                        <div class="step-circle">4</div>
+                        <span class="step-label">Selesai</span>
+                    </div>
+                </div>
+
+                <div style="width: 100px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="py-4">
+        <div class="container">
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-5">
+                <div class="spinner-border text-primary mb-3"></div>
+                <p class="text-muted">Memuat data checkout...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="text-center py-5 d-none">
+                <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+                <h5 class="mt-3">Gagal memuat data</h5>
+                <p class="text-muted" id="errorMessage">Terjadi kesalahan.</p>
+                <a href="index.html#marketplace" class="btn btn-outline-primary">Kembali</a>
+            </div>
+
+            <!-- Checkout Content -->
+            <div id="checkoutContent" class="d-none">
+                <div class="row g-4">
+
+                    <!-- Left Column: Form + Payment -->
+                    <div class="col-lg-7">
+
+                        <!-- Step 1: Vehicle Detail (shown, not editable) -->
+                        <div class="checkout-card" id="sectionVehicle">
+                            <div class="checkout-card-title">
+                                <i class="bi bi-car-front me-2 text-primary"></i>Detail Kendaraan
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <img id="checkoutVehicleImage" src="https://placehold.co/200x150?text=Loading"
+                                         class="rounded w-100" style="object-fit: cover; height: 120px;"
+                                         alt="Vehicle">
+                                </div>
+                                <div class="col-md-8">
+                                    <h5 class="fw-bold mb-1" id="checkoutVehicleTitle">-</h5>
+                                    <p class="text-muted mb-1 small">
+                                        <i class="bi bi-geo-alt me-1"></i>
+                                        <span id="checkoutVehicleLocation">-</span>
+                                    </p>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <span class="badge bg-light text-dark border" id="checkoutVehicleYear">-</span>
+                                        <span class="badge bg-light text-dark border" id="checkoutVehiclePlate">-</span>
+                                        <span class="badge bg-light text-dark border" id="checkoutVehicleMileage">-</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Inspection Schedule -->
+                        <div class="checkout-card" id="sectionInspection">
+                            <div class="checkout-card-title">
+                                <i class="bi bi-calendar-check me-2 text-primary"></i>Jadwal & Lokasi Inspeksi
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Tanggal Inspeksi <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="inspectionDate" required>
+                                    <small class="text-muted">Minimal 2 hari dari sekarang</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Waktu Inspeksi <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="inspectionTime" required>
+                                        <option value="">Pilih Waktu</option>
+                                        <option value="08:00-10:00">08:00 - 10:00</option>
+                                        <option value="10:00-12:00">10:00 - 12:00</option>
+                                        <option value="13:00-15:00">13:00 - 15:00</option>
+                                        <option value="15:00-17:00">15:00 - 17:00</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">No. Telepon yang Dapat Dihubungi <span class="text-danger">*</span></label>
+                                    <input type="tel" class="form-control" id="contactPhone"
+                                           placeholder="08xxxxxxxxxx" required>
+                                    <small class="text-muted">Inspektor akan menghubungi sebelum kedatangan</small>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Catatan (Opsional)</label>
+                                    <textarea class="form-control" id="checkoutNotes" rows="2"
+                                             placeholder="Catatan khusus untuk inspeksi..."></textarea>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 text-end">
+                                <button class="btn btn-primary" id="btnContinueToPayment" onclick="continueToPayment()">
+                                    Lanjut ke Pembayaran
+                                    <i class="bi bi-arrow-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Payment -->
+                        <div class="checkout-card d-none" id="sectionPayment">
+                            <div class="checkout-card-title">
+                                <i class="bi bi-credit-card me-2 text-primary"></i>Metode Pembayaran
+                            </div>
+
+                            <!-- Payment Methods -->
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold mb-3">Pilih Metode Pembayaran</label>
+                                <div class="row g-2" id="paymentMethodsList">
+                                    <!-- Loaded dynamically -->
+                                </div>
+                            </div>
+
+                            <!-- VA Number (shown after method selected) -->
+                            <div class="d-none mb-4" id="vaNumberSection">
+                                <label class="form-label fw-semibold">Nomor Virtual Account</label>
+                                <div class="va-number-box">
+                                    <span id="vaNumber">-</span>
+                                    <i class="bi bi-copy copy-btn ms-2" onclick="copyVANumber()"
+                                       title="Salin nomor VA"></i>
+                                </div>
+                                <small class="text-muted d-block mt-2">
+                                    Silakan transfer tepat sesuai nominal di bawah ke nomor VA di atas.
+                                </small>
+                            </div>
+
+                            <div class="countdown-timer mb-3" id="countdownTimer">
+                                <i class="bi bi-clock me-1"></i>
+                                Batas waktu pembayaran:
+                                <strong id="countdownText">--:--:--</strong>
+                            </div>
+
+                            <div class="alert alert-info mb-3">
+                                <i class="bi bi-info-circle me-2"></i>
+                                Pembayaran akan diverifikasi otomatis. Pesanan akan diproses setelah pembayaran dikonfirmasi.
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-outline-secondary" onclick="backToInspection()">
+                                    <i class="bi bi-arrow-left me-2"></i>Kembali
+                                </button>
+                                <button class="btn btn-success" id="btnConfirmPayment" onclick="submitPayment()" disabled>
+                                    <i class="bi bi-check-circle me-2"></i>Saya Sudah Bayar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Success -->
+                        <div class="checkout-card d-none text-center" id="sectionSuccess">
+                            <div class="py-4">
+                                <div class="success-icon mb-4">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size:4rem;"></i>
+                                </div>
+                                <h4 class="fw-bold mb-2">Pesanan Berhasil!</h4>
+                                <p class="text-muted mb-3">
+                                    Terima kasih telah memesan inspeksi di OTOMAN. Tim kami akan menghubungi Anda untuk konfirmasi jadwal.
+                                </p>
+
+                                <div class="alert alert-light border mb-4 mx-auto" style="max-width: 400px;">
+                                    <strong>Kode Pesanan:</strong>
+                                    <h5 class="mb-0 text-primary" id="successOrderCode">-</h5>
+                                </div>
+
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <a href="dashboard/dashboard.html" class="btn btn-primary">
+                                        <i class="bi bi-speedometer2 me-2"></i>Ke Dashboard
+                                    </a>
+                                    <a href="index.html" class="btn btn-outline-primary">
+                                        <i class="bi bi-house me-2"></i>Kembali ke Beranda
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column: Order Summary -->
+                    <div class="col-lg-5">
+                        <div class="checkout-card" id="orderSummary">
+                            <div class="checkout-card-title">
+                                <i class="bi bi-receipt me-2 text-primary"></i>Ringkasan Pesanan
+                            </div>
+
+                            <table class="order-summary-table">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted small">Kendaraan</td>
+                                        <td>
+                                            <div class="fw-semibold" id="summaryVehicle">-</div>
+                                            <div class="small text-muted" id="summaryOrderCode">-</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted small">Jadwal</td>
+                                        <td>
+                                            <div id="summaryDate">-</div>
+                                            <div class="small text-muted" id="summaryTime">-</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted small">Lokasi</td>
+                                        <td id="summaryLocation">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><hr class="my-2"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Harga Kendaraan</td>
+                                        <td id="summaryVehiclePrice">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Biaya Inspeksi</td>
+                                        <td id="summaryInspectionFee">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Biaya Platform</td>
+                                        <td id="summaryPlatformFee">-</td>
+                                    </tr>
+                                    <tr class="total-row">
+                                        <td>Total Pembayaran</td>
+                                        <td class="text-primary" id="summaryTotal">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <div class="alert alert-warning mt-3 mb-0 small">
+                                <i class="bi bi-exclamation-circle me-1"></i>
+                                Harga kendaraan adalah estimasi. Nego harga langsung dengan penjual setelah inspeksi selesai.
+                            </div>
+                        </div>
+
+                        <!-- Trust Badges -->
+                        <div class="checkout-card">
+                            <div class="row g-3 text-center">
+                                <div class="col-4">
+                                    <i class="bi bi-shield-check text-success fs-4"></i>
+                                    <div class="small fw-semibold mt-1">100%<br>Terjamin</div>
+                                </div>
+                                <div class="col-4">
+                                    <i class="bi bi-clipboard-check text-primary fs-4"></i>
+                                    <div class="small fw-semibold mt-1">Inspeksi<br>Profesional</div>
+                                </div>
+                                <div class="col-4">
+                                    <i class="bi bi-headset text-warning fs-4"></i>
+                                    <div class="small fw-semibold mt-1">Support<br>24/7</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999">
+        <div id="checkoutToast" class="toast align-items-center text-white border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body" id="toastMessage"></div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="js/bootstrap.bundle.min.js"></script>
+
+    <!-- API JS -->
+    <script src="js/api.js"></script>
+
+    <!-- Checkout JS -->
+    <script src="js/marketplace-checkout.js"></script>
+
+</body>
+</html>

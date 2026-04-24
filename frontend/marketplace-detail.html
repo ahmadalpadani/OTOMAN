@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detail Kendaraan - OTOMAN</title>
+    <meta name="description" content="Detail kendaraan bekas terverifikasi dengan laporan inspeksi lengkap">
+
+    <!-- Bootstrap CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        .marketplace-detail-page {
+            background: #f8f9fa;
+            min-height: 100vh;
+        }
+        .breadcrumb-area {
+            background: #0d6efd;
+            padding: 1rem 0;
+        }
+        .breadcrumb {
+            margin-bottom: 0;
+            background: transparent;
+        }
+        .breadcrumb-item a {
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: #fff;
+        }
+        .breadcrumb-item + .breadcrumb-item::before {
+            color: rgba(255,255,255,0.5);
+        }
+        .vehicle-header {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .vehicle-badge-verified {
+            background: #28a745;
+            color: #fff;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .vehicle-badge-inspected {
+            background: #0d6efd;
+            color: #fff;
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .price-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            position: sticky;
+            top: 80px;
+        }
+        .price-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .price-item:last-child {
+            border-bottom: none;
+        }
+        .price-total {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #0d6efd;
+        }
+        .inspection-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .inspection-category {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            overflow: hidden;
+        }
+        .inspection-category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            background: #f8f9fa;
+            transition: background 0.2s;
+        }
+        .inspection-category-header:hover {
+            background: #e9ecef;
+        }
+        .inspection-category-header .condition-badge {
+            font-size: 0.8rem;
+            padding: 3px 8px;
+            border-radius: 20px;
+        }
+        .condition-good { background: #d4edda; color: #155724; }
+        .condition-fair { background: #fff3cd; color: #856404; }
+        .condition-poor { background: #f8d7da; color: #721c24; }
+        .condition-excellent { background: #cfe2ff; color: #084298; }
+        .inspection-category-body {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+            display: none;
+        }
+        .inspection-category-body.show {
+            display: block;
+        }
+        .overall-score {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .score-excellent { background: #d4edda; color: #155724; }
+        .score-good { background: #cfe2ff; color: #084298; }
+        .score-fair { background: #fff3cd; color: #856404; }
+        .score-poor { background: #f8d7da; color: #721c24; }
+        .document-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+        }
+        .document-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+        .doc-available { background: #d4edda; color: #155724; }
+        .doc-missing { background: #f8d7da; color: #721c24; }
+        .vehicle-image-gallery {
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+        }
+        .vehicle-image-gallery img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+        }
+        .gallery-thumbnails {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .gallery-thumb {
+            width: 70px;
+            height: 50px;
+            border-radius: 6px;
+            overflow: hidden;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+            border: 2px solid transparent;
+        }
+        .gallery-thumb:hover,
+        .gallery-thumb.active {
+            opacity: 1;
+            border-color: #0d6efd;
+        }
+        .gallery-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .vehicle-specs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+        }
+        .spec-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        .spec-item i {
+            color: #0d6efd;
+            width: 20px;
+        }
+        .spec-item .spec-label {
+            color: #6c757d;
+            margin-right: 4px;
+        }
+        @media (min-width: 768px) {
+            .price-card {
+                top: 90px;
+            }
+        }
+    </style>
+</head>
+<body class="marketplace-detail-page">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-car-front-fill me-2"></i>OTOMAN
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="inspection.html">Inspeksi</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="marketplace-detail.html">Marketplace</a>
+                    </li>
+                    <li class="nav-item" id="navLogin">
+                        <a class="nav-link" href="login.html">Masuk</a>
+                    </li>
+                    <li class="nav-item dropdown d-none" id="navUser">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <span id="userName">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="dashboard/dashboard.html">Dashboard</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">Keluar</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb-area" style="margin-top:56px;">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="index.html">Beranda</a></li>
+                    <li class="breadcrumb-item"><a href="index.html#marketplace">Marketplace</a></li>
+                    <li class="breadcrumb-item active" aria-current="page" id="breadcrumbVehicle">Loading...</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="py-4">
+        <div class="container">
+            <!-- Loading State -->
+            <div id="loadingState" class="text-center py-5">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p class="text-muted">Memuat detail kendaraan...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="text-center py-5 d-none">
+                <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+                <h5 class="mt-3">Gagal memuat data</h5>
+                <p class="text-muted" id="errorMessage">Terjadi kesalahan. Silakan coba lagi.</p>
+                <a href="index.html#marketplace" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-2"></i>Kembali ke Marketplace
+                </a>
+            </div>
+
+            <!-- Content -->
+            <div id="contentArea" class="d-none">
+
+                <!-- Page Header -->
+                <div class="vehicle-header">
+                    <!-- Dynamic status badge -->
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2" id="statusBadges">
+                        <span class="vehicle-badge-verified">
+                            <i class="bi bi-patch-check-fill"></i>Terverified
+                        </span>
+                        <span class="vehicle-badge-inspected" id="inspectionBadge">
+                            <i class="bi bi-clipboard-check me-1"></i>Laporan Inspeksi Tersedia
+                        </span>
+                        <span id="listingStatusBadge" class="badge" style="display:none;"></span>
+                    </div>
+                    <!-- Pending notice for buyers -->
+                    <div class="alert alert-warning py-2 mb-3" id="pendingNotice" style="display:none;">
+                        <i class="bi bi-clock me-2"></i>
+                        <strong>Listing ini masih dalam proses inspeksi.</strong>
+                        Laporan inspeksi akan tersedia setelah proses selesai.
+                    </div>
+                    <h2 class="fw-bold mb-1" id="vehicleTitle">Loading...</h2>
+                    <p class="text-muted mb-0" id="vehicleSubtitle">
+                        <i class="bi bi-geo-alt me-1"></i>
+                        <span id="vehicleLocation"></span>
+                        <span class="mx-2">&bull;</span>
+                        <span id="vehiclePlate"></span>
+                    </p>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Left Column -->
+                    <div class="col-lg-8">
+
+                        <!-- Image Gallery -->
+                        <div class="vehicle-image-gallery mb-4">
+                            <img id="mainImage" src="https://placehold.co/800x500?text=Loading..." alt="Vehicle Image"
+                                 onerror="this.src='https://placehold.co/800x500?text=No+Image'">
+                        </div>
+                        <div class="gallery-thumbnails" id="galleryThumbnails">
+                            <!-- Thumbnails loaded dynamically -->
+                        </div>
+
+                        <!-- Vehicle Specs -->
+                        <div class="inspection-card">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-car-front me-2 text-primary"></i>Spesifikasi Kendaraan</h5>
+                            <div class="vehicle-specs-grid" id="vehicleSpecs">
+                                <!-- Loaded dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Inspection Report -->
+                        <div class="inspection-card">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-clipboard-check me-2 text-primary"></i>Laporan Inspeksi
+                                </h5>
+                                <div class="d-flex align-items-center gap-3">
+                                    <span class="badge bg-light text-dark border" id="inspectorBadge">
+                                        <i class="bi bi-person-badge me-1"></i>
+                                        <span id="inspectorName">-</span>
+                                    </span>
+                                    <div class="overall-score score-good" id="overallScore">-</div>
+                                </div>
+                            </div>
+
+                            <!-- Result Summary -->
+                            <div class="alert alert-success d-flex align-items-center gap-3 mb-4" id="resultAlert">
+                                <i class="bi bi-check-circle-fill fs-4"></i>
+                                <div>
+                                    <strong id="resultLabel">Disetujui</strong>
+                                    <p class="mb-0 small" id="resultNotes">Mobil dalam kondisi baik dan direkomendasikan untuk dibeli.</p>
+                                </div>
+                            </div>
+
+                            <!-- Inspection Categories -->
+                            <div id="inspectionCategories">
+                                <!-- Loaded dynamically -->
+                            </div>
+
+                            <!-- Download Report -->
+                            <div class="mt-3 pt-3 border-top">
+                                <a href="#" class="btn btn-outline-primary btn-sm" id="downloadReportBtn">
+                                    <i class="bi bi-file-earmark-pdf me-2"></i>Download Laporan PDF
+                                </a>
+                                <a href="#" class="btn btn-outline-success btn-sm" id="downloadCertBtn">
+                                    <i class="bi bi-award me-2"></i>Download Sertifikat
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Seller Info -->
+                        <div class="inspection-card">
+                            <h5 class="fw-bold mb-3"><i class="bi bi-person me-2 text-primary"></i>Informasi Penjual</h5>
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width:56px;height:56px;background:#e9ecef;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                    <i class="bi bi-person fs-3 text-muted"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1" id="sellerName">-</h6>
+                                    <p class="text-muted mb-0 small">
+                                        Member sejak <span id="sellerMemberSince">-</span>
+                                        &bull;
+                                        <span id="sellerTotalListings">-</span> listing
+                                        &bull;
+                                        <i class="bi bi-patch-check-fill text-success"></i> Terverifikasi
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column: Price Card -->
+                    <div class="col-lg-4">
+                        <div class="price-card">
+                            <h5 class="fw-bold mb-3">Ringkasan Harga</h5>
+
+                            <div class="price-item">
+                                <span class="text-muted">Harga Mobil</span>
+                                <span class="fw-semibold" id="vehiclePrice">-</span>
+                            </div>
+                            <div class="price-item">
+                                <span class="text-muted">Biaya Inspeksi</span>
+                                <span class="fw-semibold" id="inspectionFee">Rp 350.000</span>
+                            </div>
+                            <div class="price-item">
+                                <span class="text-muted">Biaya Platform</span>
+                                <span class="fw-semibold" id="platformFee">Rp 6.500</span>
+                            </div>
+                            <hr>
+                            <div class="price-item">
+                                <span class="fw-bold">Total</span>
+                                <span class="price-total" id="totalPrice">-</span>
+                            </div>
+
+                            <div class="d-grid mt-3">
+                                <a href="#" class="btn btn-success btn-lg" id="contactSellerBtn">
+                                    <i class="bi bi-whatsapp me-2"></i>Hubungi Penjual
+                                </a>
+                            </div>
+
+                            <div class="mt-3 small text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Hubungi penjual untuk negosiasi harga setelah inspeksi selesai.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Related Vehicles -->
+                <div class="mt-5">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-car-front me-2 text-primary"></i>Kendaraan Lainnya</h5>
+                    <div class="row g-3" id="relatedVehicles">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="mb-0">&copy; 2026 OTOMAN. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="#" class="text-white-50 text-decoration-none me-3">Privacy Policy</a>
+                    <a href="#" class="text-white-50 text-decoration-none">Terms of Service</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="js/bootstrap.bundle.min.js"></script>
+
+    <!-- API JS -->
+    <script src="js/api.js"></script>
+
+    <!-- Marketplace Detail JS -->
+    <script src="js/marketplace-detail.js"></script>
+
+</body>
+</html>
